@@ -1,7 +1,9 @@
 package com.example.hoaxify;
 
 import com.example.hoaxify.user.User;
-import org.assertj.core.api.Assertions;
+import com.example.hoaxify.user.UserRepository;
+import org.aspectj.lang.annotation.Before;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,9 +12,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.*;
+import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
@@ -23,12 +24,18 @@ public class UserControllerTest {
     @Autowired
     TestRestTemplate testRestTemplate;
 
+    @Autowired
+    UserRepository userRepository;
+
+    @BeforeEach
+    public void cleanup() {
+        userRepository.deleteAll();
+    }
+
     @Test
     public void postUser_whenUserIsValid_receiveOk() {
         User user = createValidUser();
-
         ResponseEntity<Object> response = testRestTemplate.postForEntity(API_1_0_USERS, user, Object.class);
-
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
@@ -43,11 +50,7 @@ public class UserControllerTest {
     @Test
     public void postUser_whenUserIsValid_userSavedToDatabase() {
         User user = createValidUser();
-
         testRestTemplate.postForEntity(API_1_0_USERS, user, Object.class);
-
-
-
         assertThat(userRepository.count()).isEqualTo(1);
     }
 }
