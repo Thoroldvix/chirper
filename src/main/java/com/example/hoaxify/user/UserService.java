@@ -7,18 +7,18 @@ import org.springframework.stereotype.Service;
 @Service
 public class UserService {
 
-        private final UserRepository userRepository;
+    private final UserRepository userRepository;
 
-        private final BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-        @Autowired
-        public UserService(UserRepository userRepository) {
-            this.userRepository = userRepository;
-            this.passwordEncoder = new BCryptPasswordEncoder();
-        }
+    @Autowired
+    public UserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+        this.passwordEncoder = new BCryptPasswordEncoder();
+    }
 
-        public User save(User user) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
-           return userRepository.save(user);
-        }
+    public User save(User user) {
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
 }

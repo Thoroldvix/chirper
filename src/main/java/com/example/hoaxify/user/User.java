@@ -1,9 +1,6 @@
 package com.example.hoaxify.user;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -19,14 +16,15 @@ public class User {
     @Id
     @GeneratedValue
     private long id;
-    @NotNull
+    @NotNull(message = "{hoaxify.constraints.username.NotNull.message}")
     @Size(min = 4, max = 255)
+    @UniqueUsername
     private String username;
     @NotNull
     @Size(min = 4, max = 255)
     private String displayName;
     @NotNull
     @Size(min = 8, max = 255)
-    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "Password must contain at least one uppercase letter, one lowercase letter and one number")
+    @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "{hoaxify.constraints.password.Pattern.message}")
     private String password;
 }
