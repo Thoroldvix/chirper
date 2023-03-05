@@ -1,5 +1,6 @@
-package com.example.hoaxify.user;
+package com.example.hoaxify.persistence.entity;
 
+import com.example.hoaxify.validation.UniqueUsername;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;

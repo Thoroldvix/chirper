@@ -1,7 +1,7 @@
 package com.example.hoaxify;
 
-import com.example.hoaxify.user.User;
-import com.example.hoaxify.user.UserRepository;
+import com.example.hoaxify.persistence.entity.User;
+import com.example.hoaxify.persistence.entity.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -12,7 +12,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @ActiveProfiles("test")
-public class UserRepositoryTest {
+ class UserRepositoryTest {
 
     @Autowired
     TestEntityManager testEntityManager;
@@ -21,7 +21,7 @@ public class UserRepositoryTest {
     UserRepository userRepository;
 
     @Test
-    public void findByUsername_whenUserExists_returnUser() {
+     void findByUsername_whenUserExists_returnUser() {
         User user = new User();
 
         user.setUsername("test-user");
@@ -36,7 +36,7 @@ public class UserRepositoryTest {
     }
 
     @Test
-    public void findByUsername_whenUserDoesNotExist_returnsNull() {
+     void findByUsername_whenUserDoesNotExist_returnsNull() {
         User inDB = userRepository.findByUsername("test-user").orElse(null);
         assertThat(inDB).isNull();
     }

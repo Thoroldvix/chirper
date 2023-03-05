@@ -1,4 +1,4 @@
-package com.example.hoaxify.shared;
+package com.example.hoaxify.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

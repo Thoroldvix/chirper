@@ -1,5 +1,6 @@
-package com.example.hoaxify.user;
+package com.example.hoaxify.persistence.entity.repository;
 
+import com.example.hoaxify.persistence.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

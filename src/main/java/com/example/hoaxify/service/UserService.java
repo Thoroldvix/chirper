@@ -1,5 +1,7 @@
-package com.example.hoaxify.user;
+package com.example.hoaxify.service;
 
+import com.example.hoaxify.persistence.entity.User;
+import com.example.hoaxify.persistence.entity.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;

@@ -1,6 +1,8 @@
-package com.example.hoaxify.user;
+package com.example.hoaxify.web;
 
-import com.example.hoaxify.shared.GenericResponse;
+import com.example.hoaxify.persistence.entity.User;
+import com.example.hoaxify.dto.GenericResponse;
+import com.example.hoaxify.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
