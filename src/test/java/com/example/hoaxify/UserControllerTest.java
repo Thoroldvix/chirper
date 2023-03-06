@@ -1,13 +1,12 @@
 package com.example.hoaxify;
 
-import com.example.hoaxify.error.ApiError;
 import com.example.hoaxify.dto.GenericResponse;
-import com.example.hoaxify.persistence.entity.User;
+import com.example.hoaxify.error.ApiError;
+import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.persistence.entity.repository.UserRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.client.RestClientTest;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,6 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 
 @SpringBootTest(webEnvironment = RANDOM_PORT)
-@RestClientTest
 @ActiveProfiles("test")
  class UserControllerTest {
 
@@ -39,34 +37,29 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
     @BeforeEach
     void cleanUp() {
         userRepository.deleteAll();
+        testRestTemplate.getRestTemplate().getInterceptors().clear();
     }
 
     @Test
      void postUser_whenUserIsValid_receiveOk() {
-        User user = createValidUser();
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
 
-    private User createValidUser() {
-        User user = new User();
-        user.setUsername("test-user");
-        user.setDisplayName("test-display");
-        user.setPassword("P4ssword");
-        return user;
-    }
+
 
     @Test
      void postUser_whenUserIsValid_receiveSuccessMessage() {
-        User user = createValidUser();
-        ResponseEntity<GenericResponse> response = postSignup(user, GenericResponse.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        ResponseEntity<GenericResponse> response = postSignup(userEntity, GenericResponse.class);
         assertThat(Objects.requireNonNull(response.getBody()).getMessage()).isNotNull();
     }
 
     @Test
      void postUser_whenUserIsValid_userSavedToDatabase() {
-        User user = createValidUser();
-        postSignup(user, GenericResponse.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        postSignup(userEntity, GenericResponse.class);
         assertThat(userRepository.count()).isEqualTo(1);
     }
 
@@ -76,179 +69,179 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
     @Test
      void postUser_whenUserHasNullUsername_receiveBadRequest() {
-        User user = createValidUser();
-        user.setUsername(null);
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setUsername(null);
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasNullDisplayName_receiveBadRequest() {
-        User user = createValidUser();
-        user.setDisplayName(null);
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setDisplayName(null);
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasNullPassword_receiveBadRequest() {
-        User user = createValidUser();
-        user.setPassword(null);
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword(null);
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserIsValid_passwordIsHashedInDatabase() {
-        User user = createValidUser();
-        postSignup(user, GenericResponse.class);
-        List<User> users = userRepository.findAll();
-        User inDB = users.get(0);
-        assertThat(inDB.getPassword()).isNotEqualTo(user.getPassword());
+        UserEntity userEntity = TestUtils.createValidUser();
+        postSignup(userEntity, GenericResponse.class);
+        List<UserEntity> userEntities = userRepository.findAll();
+        UserEntity inDB = userEntities.get(0);
+        assertThat(inDB.getPassword()).isNotEqualTo(userEntity.getPassword());
     }
 
     @Test
      void postUser_whenUserHasUsernameWithLessThanRequired_receiveBadRequest() {
-        User user = createValidUser();
-        user.setUsername("abc");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setUsername("abc");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasDisplayNameWithLessThanRequired_receiveBadRequest() {
-        User user = createValidUser();
-        user.setDisplayName("abc");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setDisplayName("abc");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasPasswordWithLessThanRequired_receiveBadRequest() {
-        User user = createValidUser();
-        user.setPassword("P4sswd");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword("P4sswd");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasUsernameExceedsTheLengthLimit_receiveBadRequest() {
-        User user = createValidUser();
+        UserEntity userEntity = TestUtils.createValidUser();
         String valueOf256Chars = IntStream.rangeClosed(1, 256).mapToObj(x -> "a").collect(Collectors.joining());
-        user.setUsername(valueOf256Chars);
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        userEntity.setUsername(valueOf256Chars);
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasDisplayNameExceedsTheLengthLimit_receiveBadRequest() {
-        User user = createValidUser();
+        UserEntity userEntity = TestUtils.createValidUser();
         String valueOf256Chars = IntStream.rangeClosed(1, 256).mapToObj(x -> "a").collect(Collectors.joining());
-        user.setDisplayName(valueOf256Chars);
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        userEntity.setDisplayName(valueOf256Chars);
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasPasswordExceedsTheLengthLimit_receiveBadRequest() {
-        User user = createValidUser();
+        UserEntity userEntity = TestUtils.createValidUser();
         String valueOf256Chars = IntStream.rangeClosed(1, 256).mapToObj(x -> "a").collect(Collectors.joining());
-        user.setPassword(valueOf256Chars + "A1");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        userEntity.setPassword(valueOf256Chars + "A1");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasPasswordWithAllLowerCase_receiveBadRequest() {
-        User user = createValidUser();
-        user.setPassword("allowercase");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword("allowercase");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasPasswordWithAllUpperCase_receiveBadRequest() {
-        User user = createValidUser();
-        user.setPassword("ALLUPPERCASE");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword("ALLUPPERCASE");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserHasPasswordWithAllNumber_receiveBadRequest() {
-        User user = createValidUser();
-        user.setPassword("1234567890");
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword("1234567890");
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 
     @Test
      void postUser_whenUserIsInvalid_ReceiveApiError() {
-        User user = new User();
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = new UserEntity();
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         assertThat(Objects.requireNonNull(response.getBody()).getUrl()).isEqualTo(API_1_0_USERS);
 
     }
 
     @Test
      void postUser_whenUserIsInvalid_ReceiveApiErrorWithValidationErrors() {
-        User user = new User();
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = new UserEntity();
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         assertThat(Objects.requireNonNull(response.getBody()).getValidationErrors()).hasSize(3);
 
     }
 
     @Test
      void postUser_whenUserHasNullUsername_receiveMessageOfNullErrorForUsername() {
-        User user = createValidUser();
-        user.setUsername(null);
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setUsername(null);
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         Map<String, String> validationError = Objects.requireNonNull(response.getBody()).getValidationErrors();
         assertThat(validationError.get("username")).isEqualTo("Username cannot be null");
     }
 
     @Test
      void postUser_whenUserHasNullUsername_receiveGenericMessageOfNullError() {
-        User user = createValidUser();
-        user.setPassword(null);
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword(null);
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         Map<String, String> validationError = Objects.requireNonNull(response.getBody()).getValidationErrors();
         assertThat(validationError.get("password")).isEqualTo("Cannot be null");
     }
 
     @Test
      void postUser_whenUserHasInvalidLengthUsername_receiveGenericMessageOfSizeError() {
-        User user = createValidUser();
-        user.setUsername("abc");
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setUsername("abc");
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         Map<String, String> validationError = Objects.requireNonNull(response.getBody()).getValidationErrors();
         assertThat(validationError.get("username")).isEqualTo("It must have minimum 4 and maximum 255 characters");
     }
 
     @Test
      void postUser_whenUserHasInvalidPasswordPattern_receiveMessageOfPasswordPatternError() {
-        User user = createValidUser();
-        user.setPassword("alllowercase");
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        userEntity.setPassword("alllowercase");
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         Map<String, String> validationError = Objects.requireNonNull(response.getBody()).getValidationErrors();
         assertThat(validationError.get("password")).isEqualTo("Password must have at least one uppercase, one lowercase and one number");
     }
 
     @Test
      void postUser_WhenAnotherUserHasSameUsername_receiveBadRequest() {
-        userRepository.save(createValidUser());
+        userRepository.save(TestUtils.createValidUser());
 
-        User user = createValidUser();
-        ResponseEntity<ApiError> response = postSignup(user, ApiError.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        ResponseEntity<ApiError> response = postSignup(userEntity, ApiError.class);
         Map<String, String> validationError = Objects.requireNonNull(response.getBody()).getValidationErrors();
         assertThat(validationError.get("username")).isEqualTo("This name is in use");
     }
     @Test
      void postUser_WhenAnotherUserHasSameUsername_receiveMessageOfDuplicateUsername() {
-        userRepository.save(createValidUser());
+        userRepository.save(TestUtils.createValidUser());
 
-        User user = createValidUser();
-        ResponseEntity<Object> response = postSignup(user, Object.class);
+        UserEntity userEntity = TestUtils.createValidUser();
+        ResponseEntity<Object> response = postSignup(userEntity, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 

@@ -1,19 +1,22 @@
 package com.example.hoaxify.persistence.entity;
 
+import com.example.hoaxify.persistence.entity.enums.Role;
 import com.example.hoaxify.validation.UniqueUsername;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "users")
-public class User {
+public class UserEntity {
     @Id
     @GeneratedValue
     private long id;
@@ -28,4 +31,10 @@ public class User {
     @Size(min = 8, max = 255)
     @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "{hoaxify.constraints.password.Pattern.message}")
     private String password;
+
+    private String image;
+
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
 }

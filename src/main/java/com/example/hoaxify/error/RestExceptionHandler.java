@@ -2,6 +2,7 @@ package com.example.hoaxify.error;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -12,12 +13,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestControllerAdvice
-public class RestControllerExceptionHandler  {
+public class RestExceptionHandler {
+
+
 
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    ApiError handleValidationException(MethodArgumentNotValidException exception, HttpServletRequest request) {
+    public ResponseEntity<ApiError> handleValidationException(MethodArgumentNotValidException exception, HttpServletRequest request) {
         ApiError apiError = new ApiError(400, "Validation error", request.getServletPath());
 
         BindingResult bindingResult = exception.getBindingResult();
@@ -30,6 +33,8 @@ public class RestControllerExceptionHandler  {
 
         apiError.setValidationErrors(validationErrors);
 
-        return apiError;
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
+
 }
