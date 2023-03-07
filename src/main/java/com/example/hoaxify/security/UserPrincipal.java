@@ -29,6 +29,7 @@ public class UserPrincipal implements UserDetails {
         return this.user.getDisplayName();
     }
 
+    @JsonIgnore
     public Role getRole() {
         return this.user.getRole();
     }
@@ -36,6 +37,7 @@ public class UserPrincipal implements UserDetails {
 
 
     @Override
+    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(new SimpleGrantedAuthority("ROLE_" + this.user.getRole()));
     }
@@ -51,22 +53,22 @@ public class UserPrincipal implements UserDetails {
     public String getUsername() {
         return this.user.getUsername();
     }
-
+    @JsonIgnore
     @Override
     public boolean isAccountNonExpired() {
         return true;
     }
-
+    @JsonIgnore
     @Override
     public boolean isAccountNonLocked() {
         return true;
     }
-
+    @JsonIgnore
     @Override
     public boolean isCredentialsNonExpired() {
         return true;
     }
-
+    @JsonIgnore
     @Override
     public boolean isEnabled() {
         return true;
