@@ -1,15 +1,17 @@
 package com.example.hoaxify.web;
 
 import com.example.hoaxify.dto.GenericResponse;
+import com.example.hoaxify.dto.UserDto;
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
+@RequestMapping("/api/1.0")
 public class UserController {
 
     private final UserService userService;
@@ -19,9 +21,14 @@ public class UserController {
         this.userService = userService;
     }
 
+    @GetMapping("/users")
+    public Page<UserDto> getUsers(Pageable page) {
+        return (userService.getUsers(page));
+    }
 
-    @PostMapping("/api/1.0/users")
-    GenericResponse createUser(@Valid @RequestBody  UserEntity userEntity) {
+
+    @PostMapping("/users")
+    public GenericResponse createUser(@Valid @RequestBody UserEntity userEntity) {
         userService.save(userEntity);
         return new GenericResponse("User saved");
 
