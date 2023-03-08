@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 public class UserEntity {
     @Id
     @GeneratedValue
-    private long id;
+    private Long id;
     @NotNull(message = "{hoaxify.constraints.username.NotNull.message}")
     @Size(min = 4, max = 255)
     @UniqueUsername
