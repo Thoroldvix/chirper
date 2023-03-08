@@ -27,6 +27,10 @@ public class UserController {
     public Page<UserDto> getUsers(@AuthenticationPrincipal UserPrincipal loggedInUser,  Pageable page) {
         return (userService.getUsers(loggedInUser, page));
     }
+    @GetMapping("/users/{username}")
+    public UserDto getUserByName(@PathVariable String username) {
+        return userService.getByUsername(username);
+    }
 
 
     @PostMapping("/users")

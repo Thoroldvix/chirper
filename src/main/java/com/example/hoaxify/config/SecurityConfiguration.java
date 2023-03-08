@@ -35,7 +35,7 @@ public class SecurityConfiguration {
                     authorizeConfig.requestMatchers("/api/1.0/login").authenticated();
                     authorizeConfig.anyRequest().permitAll();
                 })
-                .httpBasic().authenticationEntryPoint(new BasicAuthenticationEntryPoint())
+                .httpBasic()
                 .and()
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)

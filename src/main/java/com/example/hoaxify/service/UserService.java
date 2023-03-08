@@ -9,6 +9,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -39,8 +40,18 @@ public class UserService {
             return userRepository.findByUsernameNot(loggedInUser.getUsername(), page)
                     .map(user -> modelMapper.map(user, UserDto.class));
         }
-        return userRepository.findAll(page).map(user-> modelMapper.map(user, UserDto.class));
+        return userRepository.findAll(page).map(this::toUserDto);
     }
 
 
+
+    public UserDto getByUsername(String username) {
+        UserEntity user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " not found"));
+
+        return toUserDto(user);
+    }
+    private UserDto toUserDto(UserEntity user) {
+        return  modelMapper.map(user, UserDto.class);
+    }
 }
