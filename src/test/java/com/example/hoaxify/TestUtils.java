@@ -15,4 +15,10 @@ public class TestUtils {
         userEntity.setRole(Role.USER);
         return userEntity;
     }
+    public static UserEntity createValidUser(String username) {
+        UserEntity userEntity = createValidUser();
+        userEntity.setUsername(username);
+
+        return userEntity;
+    }
 }

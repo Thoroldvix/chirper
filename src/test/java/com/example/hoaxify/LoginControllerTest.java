@@ -93,7 +93,7 @@ class LoginControllerTest {
         Map<String, Object> body = response.getBody();
         assertThat(body).isNotNull();
         Integer id = (Integer) body.get("id");
-        assertThat(id).isEqualTo(inDB.getId());
+        assertThat(Long.valueOf(id)).isEqualTo(inDB.getId());
     }
     @Test
     void postLogin_withValidCredentials_receiveLoggedInUsersImage() {
