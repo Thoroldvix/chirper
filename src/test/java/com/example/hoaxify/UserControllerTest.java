@@ -1,6 +1,8 @@
 package com.example.hoaxify;
 
 import com.example.hoaxify.dto.GenericResponse;
+import com.example.hoaxify.dto.UserDto;
+import com.example.hoaxify.dto.UserUpdateDto;
 import com.example.hoaxify.error.ApiError;
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.persistence.entity.repository.UserRepository;
@@ -11,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +24,13 @@ import org.springframework.test.context.ActiveProfiles;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static com.example.hoaxify.TestUtils.createValidUser;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.boot.test.context.SpringBootTest.WebEnvironment.RANDOM_PORT;
 
 
@@ -368,6 +374,89 @@ class UserControllerTest {
         ResponseEntity<ApiError> response = getUser("username", ApiError.class);
         assertThat(Objects.requireNonNull(response.getBody()).getMessage().contains("username")).isTrue();
     }
+    @Test
+    public void putUser_whenUnauthorizedUserSendsTheRequest_receiveUnauthorized() {
+        ResponseEntity<Object> response = putUser(123,  null, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+    @Test
+    public void putUser_whenUnauthorizedUserSendsTheRequest_receiveApiError() {
+        ResponseEntity<ApiError> response = putUser(123,  null, ApiError.class);
+        assertThat(Objects.requireNonNull(response.getBody()).getUrl()).contains("users/123");
+    }
+
+    @Test
+    public void putUser_whenAuthorizedUserSendsUpdateForAnotherUser_receiveForbidden() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+        long anotherUserId = user.getId() + 123;
+        ResponseEntity<Object> response = putUser(anotherUserId,  null, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+    @Test
+    public void putUser_whenAuthorizedUserSendsUpdateForAnotherUser_receiveApiError() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+        long anotherUserId = user.getId() + 123;
+        ResponseEntity<ApiError> response = putUser(anotherUserId,  null, ApiError.class);
+        assertThat(Objects.requireNonNull(response.getBody()).getUrl()).contains("users/" + anotherUserId);
+    }
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveOk() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<Object> response = putUser(user.getId(), requestEntity, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_displayNameUpdated() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
+        Optional<UserEntity> userInDB = userRepository.findByUsername(user.getUsername());
+        assertTrue(userInDB.isPresent());
+        assertThat(userInDB.get().getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+    }
+    @Test
+    public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveUserDtoWithUpdatedDisplayName() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+
+        assertThat(Objects.requireNonNull(response.getBody()).getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+
+    }
+    @Test
+    public void putUser_withValidRequestBodyWithSupportedImageFromAuthorizedUser_receiveUserDtoWithRandomImageName() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+        ClassPathResource imageResource = new ClassPathResource("profile.png");
+
+        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+
+        assertThat(Objects.requireNonNull(response.getBody()).getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+
+    }
+
+    private static UserUpdateDto createValidUserUpdateDto() {
+        UserUpdateDto updatedUser = new UserUpdateDto();
+        updatedUser.setDisplayName("test-display");
+        return updatedUser;
+    }
+
     public <T> ResponseEntity<T> getUsers(ParameterizedTypeReference<T> responseType) {
         return testRestTemplate.exchange(API_1_0_USERS, HttpMethod.GET, null, responseType);
     }
@@ -382,6 +471,10 @@ class UserControllerTest {
     public <T> ResponseEntity<T> getUser(String username, Class<T> responseType) {
         String path = API_1_0_USERS + "/" + username;
         return testRestTemplate.getForEntity(path, responseType);
+    }
+    public <T> ResponseEntity<T> putUser(long id, HttpEntity<?> requestEntity, Class<T> responseType) {
+        String path = API_1_0_USERS + "/" + id;
+        return testRestTemplate.exchange(path, HttpMethod.PUT, requestEntity, responseType);
     }
 
 }

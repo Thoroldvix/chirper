@@ -1,6 +1,7 @@
 package com.example.hoaxify.service;
 
 import com.example.hoaxify.dto.UserDto;
+import com.example.hoaxify.dto.UserUpdateDto;
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.persistence.entity.enums.Role;
 import com.example.hoaxify.persistence.entity.repository.UserRepository;
@@ -12,8 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Transactional(readOnly = true)
 public class UserService {
 
     private final UserRepository userRepository;
@@ -29,6 +32,7 @@ public class UserService {
         this.modelMapper = modelMapper;
     }
 
+    @Transactional
     public UserEntity save(UserEntity userEntity) {
         userEntity.setRole(Role.USER);
         userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
@@ -53,5 +57,12 @@ public class UserService {
     }
     private UserDto toUserDto(UserEntity user) {
         return  modelMapper.map(user, UserDto.class);
+    }
+    @Transactional
+    public UserDto update(Long id, UserUpdateDto userUpdate) {
+        UserEntity inDB = userRepository.getReferenceById(id);
+        inDB.setDisplayName(userUpdate.getDisplayName());
+        UserEntity user = userRepository.save(inDB);
+        return modelMapper.map(user, UserDto.class);
     }
 }
