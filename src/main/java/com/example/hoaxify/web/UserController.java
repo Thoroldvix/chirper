@@ -3,11 +3,13 @@ package com.example.hoaxify.web;
 import com.example.hoaxify.dto.GenericResponse;
 import com.example.hoaxify.dto.UserDto;
 import com.example.hoaxify.persistence.entity.UserEntity;
+import com.example.hoaxify.security.UserPrincipal;
 import com.example.hoaxify.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -22,8 +24,8 @@ public class UserController {
     }
 
     @GetMapping("/users")
-    public Page<UserDto> getUsers(Pageable page) {
-        return (userService.getUsers(page));
+    public Page<UserDto> getUsers(@AuthenticationPrincipal UserPrincipal loggedInUser,  Pageable page) {
+        return (userService.getUsers(loggedInUser, page));
     }
 
 
