@@ -439,7 +439,7 @@ class UserControllerTest {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
 
-        ClassPathResource imageResource = new ClassPathResource("profile.png");
+        ClassPathResource imageResource = new ClassPathResource("uploads-dev/profile/profile.png");
 
         UserUpdateDto updatedUser = createValidUserUpdateDto();
 
