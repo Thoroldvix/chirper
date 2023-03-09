@@ -20,12 +20,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@ActiveProfiles("test")
+
 @AutoConfigureMockMvc
-public class StaticResourceTest {
-    @Autowired
-    private  AppConfiguration appConfiguration;
+public class StaticResourceTest extends AbstractTest {
+
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,7 +50,7 @@ public class StaticResourceTest {
     @Test
     public void getStaticFile_whenImageExistInProfileUploadFolder_receiveOk() throws Exception {
         String fileName = "profile-picture.png";
-        File source = new ClassPathResource("uploads-dev/profile/profile.png").getFile();
+        File source = new ClassPathResource("profile.png").getFile();
 
         File target = new File(Path.of(appConfiguration.getFullProfileImagesPath(), fileName).toUri());
         FileUtils.copyFile(source, target);
@@ -62,7 +60,7 @@ public class StaticResourceTest {
     @Test
     public void getStaticFile_whenImageExistInAttachmentFolder_receiveOk() throws Exception {
         String fileName = "profile-picture.png";
-        File source = new ClassPathResource("uploads-dev/profile/profile.png").getFile();
+        File source = new ClassPathResource("profile.png").getFile();
 
         File target = new File(Path.of(appConfiguration.getFullAttachmentsPath(), fileName).toUri());
         FileUtils.copyFile(source, target);
@@ -77,7 +75,7 @@ public class StaticResourceTest {
     @Test
     public void getStaticFile_whenImageExistInAttachmentFolder_receiveOkWithCacheHeaders() throws Exception {
         String fileName = "profile-picture.png";
-        File source = new ClassPathResource("uploads-dev/profile/profile.png").getFile();
+        File source = new ClassPathResource("profile.png").getFile();
 
         File target = new File(Path.of(appConfiguration.getFullAttachmentsPath(), fileName).toUri());
         FileUtils.copyFile(source, target);
@@ -86,9 +84,5 @@ public class StaticResourceTest {
         String cacheControl = result.getResponse().getHeaderValue("Cache-Control").toString();
         assertThat(cacheControl).containsIgnoringCase("max-age=31536000");
     }
-    @AfterEach
-    public  void cleanup() throws IOException {
-        FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));
-        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
-    }
+
 }
