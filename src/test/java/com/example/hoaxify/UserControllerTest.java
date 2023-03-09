@@ -7,6 +7,7 @@ import com.example.hoaxify.error.ApiError;
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.persistence.entity.repository.UserRepository;
 import com.example.hoaxify.service.UserService;
+import org.apache.commons.io.FileUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,10 +22,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.io.IOException;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -436,7 +435,7 @@ class UserControllerTest {
 
     }
     @Test
-    public void putUser_withValidRequestBodyWithSupportedImageFromAuthorizedUser_receiveUserDtoWithRandomImageName() {
+    public void putUser_withValidRequestBodyWithSupportedImageFromAuthorizedUser_receiveUserDtoWithRandomImageName() throws IOException {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
 
@@ -444,10 +443,14 @@ class UserControllerTest {
 
         UserUpdateDto updatedUser = createValidUserUpdateDto();
 
+        byte[] imageArr = FileUtils.readFileToByteArray(imageResource.getFile());
+        String imageString = Base64.getEncoder().encodeToString(imageArr);
+        updatedUser.setImage(imageString);
+
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
 
-        assertThat(Objects.requireNonNull(response.getBody()).getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+        assertThat(Objects.requireNonNull(response.getBody()).getImage()).isNotEqualTo("profile-image.png");
 
     }
 

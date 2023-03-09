@@ -17,3 +17,43 @@ spring:
       pageable:
         default-page-size: 10
         max-page-size: 100
+  profiles:
+    active:
+      - dev
+---
+spring:
+  datasource:
+    url: jdbc:h2:./hoaxify-prod
+    username: sa
+  jpa:
+    hibernate:
+      ddl-auto: update
+  h2:
+    console:
+      enabled: false
+  config:
+    activate:
+      on-profile: prod
+hoaxify:
+  upload-path: uploads-prod
+---
+spring:
+  datasource:
+    url: jdbc:h2:mem:hoaxify-dev
+  config:
+    activate:
+      on-profile: dev
+hoaxify:
+  upload-path: uploads-dev
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+hoaxify:
+  upload-path: uploads-test
