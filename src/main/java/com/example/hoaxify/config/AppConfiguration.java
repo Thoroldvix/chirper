@@ -12,15 +12,15 @@ import java.nio.file.Path;
 public class AppConfiguration {
    private String uploadPath;
 
-   private String profileImagesFolderPath = "profile";
+   private String profileImagesFolder = "profile";
 
-    private String attachmentsFolderPath = "attachments";
+    private String attachmentsFolder = "attachments";
 
-    public  String getFullProfileImagePath() {
-        return Path.of(this.uploadPath, profileImagesFolderPath).toString();
+    public  String getFullProfileImagesPath() {
+        return Path.of(this.uploadPath, profileImagesFolder).toString();
     }
 
     public String getFullAttachmentsPath() {
-        return Path.of(this.uploadPath, attachmentsFolderPath).toString();
+        return Path.of(this.uploadPath, attachmentsFolder).toString();
     }
 }

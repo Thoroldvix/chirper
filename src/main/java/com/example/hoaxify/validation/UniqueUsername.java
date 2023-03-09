@@ -1,6 +1,5 @@
 package com.example.hoaxify.validation;
 
-import com.example.hoaxify.validation.UniqueUsernameValidator;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
