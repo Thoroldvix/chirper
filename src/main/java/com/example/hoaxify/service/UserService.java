@@ -15,6 +15,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.UUID;
+
 @Service
 @Transactional(readOnly = true)
 public class UserService {
@@ -61,8 +63,15 @@ public class UserService {
     @Transactional
     public UserDto update(Long id, UserUpdateDto userUpdate) {
         UserEntity inDB = userRepository.getReferenceById(id);
+        String savedImageName = generateRandomImageName(inDB);
         inDB.setDisplayName(userUpdate.getDisplayName());
+        inDB.setImage(savedImageName);
+
         UserEntity user = userRepository.save(inDB);
         return modelMapper.map(user, UserDto.class);
+    }
+
+    private String generateRandomImageName(UserEntity inDB) {
+        return inDB.getUsername() + UUID.randomUUID().toString().replaceAll("-", "");
     }
 }
