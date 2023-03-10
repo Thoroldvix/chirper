@@ -1,4 +1,4 @@
-package com.example.hoaxify;
+package com.example.hoaxify.controller;
 
 import com.example.hoaxify.error.ApiError;
 import com.example.hoaxify.persistence.entity.UserEntity;

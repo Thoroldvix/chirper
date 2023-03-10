@@ -1,4 +1,4 @@
-package com.example.hoaxify;
+package com.example.hoaxify.service;
 
 import com.example.hoaxify.config.AppConfiguration;
 import com.example.hoaxify.service.FileService;

@@ -1,5 +1,8 @@
-package com.example.hoaxify;
+package com.example.hoaxify.controller;
 
+import com.example.hoaxify.AbstractTest;
+import com.example.hoaxify.TestPage;
+import com.example.hoaxify.TestUtils;
 import com.example.hoaxify.config.AppConfiguration;
 import com.example.hoaxify.dto.GenericResponse;
 import com.example.hoaxify.dto.UserDto;
@@ -37,7 +40,7 @@ import static org.springframework.boot.test.context.SpringBootTest.WebEnvironmen
 
 
 
-class UserControllerTest extends AbstractTest{
+class UserControllerTest extends AbstractTest {
 
     private static final String API_1_0_USERS = "/api/1.0/users";
     @Autowired
@@ -582,6 +585,28 @@ class UserControllerTest extends AbstractTest{
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+    }
+    @Test
+    public void putUser_withValidRequestBodyWithJPGImageForUserWhoHasImage_removesOldImageFromStorage() throws IOException {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+
+        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
+        String imageString = readFileToBase64("test-jpg.jpg");
+        updatedUser.setImage(imageString);
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+
+        putUser(user.getId(), requestEntity, UserDto.class);
+
+        String storedImageName = response.getBody().getImage();
+        String profilePicturePath = appConfiguration.getFullProfileImagesPath() + "/" + storedImageName;
+        File storedImage = new File(profilePicturePath);
+        assertThat(storedImage.exists()).isFalse();
 
     }
     private String readFileToBase64(String fileName) throws IOException {
