@@ -10,6 +10,7 @@ import lombok.experimental.UtilityClass;
 public class TestUtils {
    public static UserEntity createValidUser() {
         UserEntity userEntity = new UserEntity();
+
         userEntity.setUsername("test-user");
         userEntity.setDisplayName("test-display");
         userEntity.setPassword("P4ssword");

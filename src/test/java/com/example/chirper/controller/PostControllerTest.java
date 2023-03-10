@@ -1,22 +1,26 @@
 package com.example.chirper.controller;
 
+import com.example.chirper.TestPage;
 import com.example.chirper.TestUtils;
+import com.example.chirper.dto.PostDto;
 import com.example.chirper.error.ApiError;
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
+import com.example.chirper.service.PostService;
 import com.example.chirper.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,6 +44,9 @@ public class PostControllerTest {
 
     @Autowired
     private PostRepository postRepository;
+
+    @Autowired
+    private PostService postService;
 
     @BeforeEach
     public void cleanup() {
@@ -166,6 +173,47 @@ public class PostControllerTest {
         UserEntity inDBUser = userRepository.findByUsername("user1").orElse(null);
         assertThat(inDBUser).isNotNull();
         assertThat(inDBUser.getPosts().size()).isEqualTo(1);
+    }
+    @Test
+    public void getPosts_whenThereAreNoPostsInDB_receiveOk() {
+        ResponseEntity<Object> response = getPosts(new ParameterizedTypeReference<Object>() {});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    public void getPosts_whenThereAreNoPosts_receivePageWithZeroItems() {
+        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+    @Test
+    public void getPosts_whenThereArePosts_receivePageWithItems() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {});
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+    @Test
+    public void getPosts_whenThereArePosts_receivePageWithPostDto() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<TestPage<PostDto>> response = getPosts(new ParameterizedTypeReference<TestPage<PostDto>>() {});
+        PostDto storedPost = response.getBody().getContent().get(0);
+        assertThat(storedPost.getUser().getUsername()).isEqualTo(user.getUsername());
+    }
+    @Test
+    public void postPosts_whenPostIsValidAndUserIsAuthorized_receivePostDto() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        authenticate(user.getUsername());
+
+        ResponseEntity<PostDto> response = postPost(TestUtils.createValidPost(), PostDto.class);
+
+        assertThat(response.getBody().getUser().getUsername()).isEqualTo(user.getUsername());
+    }
+
+    private <T> ResponseEntity<T> getPosts(ParameterizedTypeReference<T> responseType) {
+        return testRestTemplate.exchange(API_1_0_POSTS, HttpMethod.GET, null, responseType);
     }
 
     private<T> ResponseEntity<T> postPost(Post post, Class<T> responseType) {
