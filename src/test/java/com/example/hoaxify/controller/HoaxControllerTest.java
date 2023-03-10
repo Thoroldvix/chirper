@@ -3,9 +3,9 @@ package com.example.hoaxify.controller;
 import com.example.hoaxify.TestUtils;
 import com.example.hoaxify.error.ApiError;
 import com.example.hoaxify.persistence.entity.Hoax;
+import com.example.hoaxify.persistence.entity.repository.HoaxRepository;
 import com.example.hoaxify.persistence.entity.repository.UserRepository;
 import com.example.hoaxify.service.UserService;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -33,8 +32,12 @@ public class HoaxControllerTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private HoaxRepository hoaxRepository;
+
     @BeforeEach
     public void cleanup() {
+        hoaxRepository.deleteAll();
         userRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
     }
@@ -63,6 +66,26 @@ public class HoaxControllerTest {
         Hoax hoax = TestUtils.createValidHoax();
         ResponseEntity<ApiError> response = postHoax(hoax, ApiError.class);
         assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
+    }
+    @Test
+    public void postHoax_whenHoaxIsValidAndUserIsAuthorized_hoaxSavedToDatabase() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Hoax hoax = TestUtils.createValidHoax();
+        postHoax(hoax, Object.class);
+        assertThat(hoaxRepository.count()).isEqualTo(1);
+    }
+    @Test
+    public void postHoax_whenHoaxIsValidAndUserIsAuthorized_hoaxSavedToDatabaseWithTimestamp() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Hoax hoax = TestUtils.createValidHoax();
+        postHoax(hoax, Object.class);
+
+        Hoax inDB = hoaxRepository.findAll().get(0);
+        assertThat(inDB.getCreatedAt()).isNotNull();
     }
 
     private<T> ResponseEntity<T> postHoax(Hoax hoax, Class<T> responseType) {
