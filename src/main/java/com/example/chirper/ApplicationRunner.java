@@ -1,5 +1,7 @@
 package com.example.chirper;
 
+import com.example.chirper.dto.PostDto;
+import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.service.UserService;
 import org.apache.tika.Tika;
@@ -35,7 +37,9 @@ public class ApplicationRunner {
 
     @Bean
     public ModelMapper modelMapper() {
-        return new ModelMapper();
+        ModelMapper modelMapper = new ModelMapper();
+        modelMapper.typeMap(Post.class, PostDto.class).addMapping(Post::toMillis, PostDto::setTimestamp);
+        return modelMapper;
     }
 
     @Bean
