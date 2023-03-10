@@ -9,7 +9,7 @@ spring:
   jpa:
     open-in-view: false
     properties:
-      javax:
+      jakarta:
         persistence:
           validation:
             mode: none
