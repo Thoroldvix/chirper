@@ -17,7 +17,6 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@NamedEntityGraph(name = "UserEntity.posts", attributeNodes = @NamedAttributeNode("posts"))
 @Table(name = "users")
 public class UserEntity {
     @Id
