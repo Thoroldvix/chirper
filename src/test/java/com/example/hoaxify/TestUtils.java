@@ -1,8 +1,10 @@
 package com.example.hoaxify;
 
+import com.example.hoaxify.persistence.entity.Hoax;
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.persistence.entity.enums.Role;
 import lombok.experimental.UtilityClass;
+
 
 @UtilityClass
 public class TestUtils {
@@ -21,4 +23,10 @@ public class TestUtils {
 
         return userEntity;
     }
+    public static Hoax createValidHoax() {
+        Hoax hoax = new Hoax();
+        hoax.setContent("test content for the test hoax");
+        return hoax;
+    }
+
 }

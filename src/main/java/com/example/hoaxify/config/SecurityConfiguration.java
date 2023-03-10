@@ -37,6 +37,7 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(authorizeConfig -> {
                     authorizeConfig.requestMatchers(HttpMethod.POST, "/api/1.0/login").authenticated();
                     authorizeConfig.requestMatchers(HttpMethod.PUT, "/api/1.0/users/{id:[0-9]+}").authenticated();
+                    authorizeConfig.requestMatchers(HttpMethod.POST, "/api/1.0/hoaxes").authenticated();
                     authorizeConfig.anyRequest().permitAll();
                 })
                 .httpBasic()
