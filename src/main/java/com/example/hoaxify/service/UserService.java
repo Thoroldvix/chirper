@@ -70,6 +70,7 @@ public class UserService {
         inDB.setDisplayName(userUpdate.getDisplayName());
         if (userUpdate.getImage() != null) {
             String savedImageName = fileService.saveProfileImage(userUpdate.getImage());
+            fileService.deleteProfileImage(inDB.getImage());
             inDB.setImage(savedImageName);
         }
 
