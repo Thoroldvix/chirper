@@ -23,7 +23,7 @@ spring:
 ---
 spring:
   datasource:
-    url: jdbc:h2:./hoaxify-prod
+    url: jdbc:h2:./chirper-prod
     username: sa
   jpa:
     hibernate:
@@ -34,16 +34,16 @@ spring:
   config:
     activate:
       on-profile: prod
-hoaxify:
+chirper:
   upload-path: uploads-prod
 ---
 spring:
   datasource:
-    url: jdbc:h2:mem:hoaxify-dev
+    url: jdbc:h2:mem:chirper-dev
   config:
     activate:
       on-profile: dev
-hoaxify:
+chirper:
   upload-path: uploads-dev
 ---
 spring:
@@ -55,5 +55,5 @@ spring:
     properties:
       hibernate:
         format_sql: true
-hoaxify:
+chirper:
   upload-path: uploads-test
