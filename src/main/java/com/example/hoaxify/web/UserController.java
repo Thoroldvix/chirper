@@ -39,7 +39,7 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_ADMIN') or #id == #loggedInUser.id")
     public UserDto updateUser(@PathVariable Long id,
                            @AuthenticationPrincipal UserPrincipal loggedInUser,
-                           @RequestBody(required = false) UserUpdateDto userUpdate) {
+                           @Valid @RequestBody(required = false) UserUpdateDto userUpdate) {
        return userService.update(id, userUpdate);
     }
 

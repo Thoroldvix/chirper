@@ -490,7 +490,48 @@ class UserControllerTest extends AbstractTest{
         assertThat(storedImage.exists()).isTrue();
 
     }
+    @Test
+    public void putUser_withInvalidRequestBodyWithNullDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = new UserUpdateDto();
 
+
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+    }
+    @Test
+    public void putUser_withInvalidRequestBodyWithLessThanMinSizeForDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = new UserUpdateDto();
+        updatedUser.setDisplayName("abc");
+
+
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+    }
+    @Test
+    public void putUser_withInvalidRequestBodyWithMoreThanMaxSizeForDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserUpdateDto updatedUser = new UserUpdateDto();
+        String valueOf256Chars = IntStream.rangeClosed(1, 256).mapToObj(i -> "a").collect(Collectors.joining());
+        updatedUser.setDisplayName(valueOf256Chars);
+
+
+
+        HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
+        ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+
+    }
     private String readFileToBase64(String fileName) throws IOException {
         ClassPathResource imageResource = new ClassPathResource(fileName);
         byte[] imageArr = FileUtils.readFileToByteArray(imageResource.getFile());
@@ -503,7 +544,6 @@ class UserControllerTest extends AbstractTest{
         updatedUser.setDisplayName("test-display");
         return updatedUser;
     }
-
     public <T> ResponseEntity<T> getUsers(ParameterizedTypeReference<T> responseType) {
         return testRestTemplate.exchange(API_1_0_USERS, HttpMethod.GET, null, responseType);
     }
