@@ -2,6 +2,7 @@ package com.example.hoaxify.service;
 
 import com.example.hoaxify.config.AppConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -15,9 +16,12 @@ public class FileService {
 
     private final AppConfiguration appConfiguration;
 
+    private final Tika tika;
+
     @Autowired
-    public FileService(AppConfiguration appConfiguration) {
+    public FileService(AppConfiguration appConfiguration, Tika tika) {
         this.appConfiguration = appConfiguration;
+        this.tika = tika;
     }
 
     public String saveProfileImage(String base64Image) throws IOException {
@@ -33,5 +37,9 @@ public class FileService {
 
     private String generateRandomImageName() {
         return UUID.randomUUID().toString().replaceAll("-", "");
+    }
+
+    public String detectType(byte[] fileArr) {
+        return tika.detect(fileArr);
     }
 }

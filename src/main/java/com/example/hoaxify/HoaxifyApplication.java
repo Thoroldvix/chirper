@@ -2,6 +2,7 @@ package com.example.hoaxify;
 
 import com.example.hoaxify.persistence.entity.UserEntity;
 import com.example.hoaxify.service.UserService;
+import org.apache.tika.Tika;
 import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -37,4 +38,8 @@ public class HoaxifyApplication {
         return new ModelMapper();
     }
 
+    @Bean
+    public Tika tika() {
+        return new Tika();
+    }
 }
