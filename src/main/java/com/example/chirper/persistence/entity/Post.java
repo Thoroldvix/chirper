@@ -6,6 +6,8 @@ import jakarta.validation.constraints.Size;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 
 @Data
 @Entity
@@ -23,6 +25,13 @@ public class Post {
     @ManyToOne
     private UserEntity user;
 
-
     private LocalDateTime createdAt;
+
+    public long toMillis() {
+        if (createdAt == null) {
+            return 0;
+        }
+        ZonedDateTime zdt = ZonedDateTime.of(createdAt, ZoneId.systemDefault());
+        return zdt.toInstant().toEpochMilli();
+    }
 }
