@@ -1,15 +1,15 @@
 package com.example.chirper.web;
 
+import com.example.chirper.dto.PostDto;
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.security.UserPrincipal;
 import com.example.chirper.service.PostService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/1.0")
@@ -23,7 +23,12 @@ public class PostController {
     }
 
     @PostMapping("/posts")
-    public void createHoax(@Valid @RequestBody Post post, @AuthenticationPrincipal UserPrincipal loggedInUser) {
-        postService.save(post, loggedInUser.getId());
+    public PostDto createHoax(@Valid @RequestBody Post post, @AuthenticationPrincipal UserPrincipal loggedInUser) {
+       return  postService.save(post, loggedInUser.getId());
+    }
+    @GetMapping("/posts")
+    public Page<PostDto> getAllPosts(Pageable pageable) {
+        return postService.getAllPosts(pageable);
     }
 }
+
