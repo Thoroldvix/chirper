@@ -16,7 +16,8 @@ public class Post {
     private Long id;
 
     @NotNull
-    @Size(min = 10)
+    @Size(min = 10, max = 5000)
+    @Column(length = 5000)
     private String content;
 
 

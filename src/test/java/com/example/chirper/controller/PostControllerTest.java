@@ -16,6 +16,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -105,6 +109,38 @@ public class PostControllerTest {
         post.setContent("123456789");
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+    @Test
+    public void postPost_whenPostContentIs5000CharsAndUserIsAuthorized_receiveOk() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Post post = new Post();
+        String longString = IntStream.rangeClosed(1, 5000).mapToObj(i -> "a").collect(Collectors.joining());
+        post.setContent(longString);
+        ResponseEntity<Object> response = postPost(post, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    public void postPost_whenPostContentMoreThan5000CharsAndUserIsAuthorized_receiveBadRequest() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Post post = new Post();
+        String longString = IntStream.rangeClosed(1, 5001).mapToObj(i -> "a").collect(Collectors.joining());
+        post.setContent(longString);
+        ResponseEntity<Object> response = postPost(post, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    }
+    @Test
+    public void postPost_whenPostContentIsNullAndUserIsAuthorized_receiveApiErrorWithValidationErrors() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Post post = new Post();
+        ResponseEntity<ApiError> response = postPost(post, ApiError.class);
+        Map<String, String> validationErrors = response.getBody().getValidationErrors();
+        assertThat(validationErrors.get("content")).isNotNull();
     }
 
     private<T> ResponseEntity<T> postPost(Post post, Class<T> responseType) {
