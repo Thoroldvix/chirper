@@ -3,6 +3,7 @@ package com.example.chirper.controller;
 import com.example.chirper.TestUtils;
 import com.example.chirper.error.ApiError;
 import com.example.chirper.persistence.entity.Post;
+import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
@@ -15,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -141,6 +143,29 @@ public class PostControllerTest {
         ResponseEntity<ApiError> response = postPost(post, ApiError.class);
         Map<String, String> validationErrors = response.getBody().getValidationErrors();
         assertThat(validationErrors.get("content")).isNotNull();
+    }
+    @Test
+    public void postPost_whenPostIsValidAndUserIsAuthorized_postSavedWithAuthenticatedUserInfo() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+        Post post = TestUtils.createValidPost();
+        postPost(post, Object.class);
+
+        Post inDB = postRepository.findAll().get(0);
+        assertThat(inDB.getUser().getUsername()).isEqualTo("user1");
+
+    }
+    @Test
+    public void postPost_whenPostIsValidAndUserIsAuthorized_postCanBeAccessedFromUserEntity() {
+        userService.save(TestUtils.createValidUser("user1"));
+        authenticate("user1");
+
+        Post post = TestUtils.createValidPost();
+        postPost(post, Object.class);
+
+        UserEntity inDBUser = userRepository.findByUsername("user1").orElse(null);
+        assertThat(inDBUser).isNotNull();
+        assertThat(inDBUser.getPosts().size()).isEqualTo(1);
     }
 
     private<T> ResponseEntity<T> postPost(Post post, Class<T> responseType) {

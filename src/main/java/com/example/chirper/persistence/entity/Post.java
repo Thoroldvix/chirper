@@ -20,6 +20,9 @@ public class Post {
     @Column(length = 5000)
     private String content;
 
+    @ManyToOne
+    private UserEntity user;
+
 
     private LocalDateTime createdAt;
 }

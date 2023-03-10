@@ -10,11 +10,14 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@NamedEntityGraph(name = "UserEntity.posts", attributeNodes = @NamedAttributeNode("posts"))
 @Table(name = "users")
 public class UserEntity {
     @Id
@@ -36,5 +39,8 @@ public class UserEntity {
 
     @Enumerated(EnumType.STRING)
     private Role role;
+
+    @OneToMany(mappedBy = "user")
+    private List<Post> posts;
 
 }
