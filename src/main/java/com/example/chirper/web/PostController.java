@@ -43,8 +43,8 @@ public class PostController {
                                               @RequestParam(name = "direction", defaultValue = "after") String direction,
                                               Pageable pageable) {
         return !"after".equalsIgnoreCase(direction) ?
-                ResponseEntity.ok().body(postService.getOldPosts(id, pageable))
-                : ResponseEntity.ok().body(postService.getNewPosts(id, pageable));
+                ResponseEntity.ok(postService.getOldPosts(id, pageable))
+                : ResponseEntity.ok(postService.getNewPosts(id, pageable));
 
     }
 
@@ -54,8 +54,8 @@ public class PostController {
                                                      @RequestParam(name = "direction", defaultValue = "after") String direction,
                                                      Pageable pageable) {
         return !"after".equalsIgnoreCase(direction)
-                ? ResponseEntity.ok().body(postService.getOldPostsOfUser(username, id, pageable))
-                : ResponseEntity.ok().body(postService.getNewPostsOfUser(username, id, pageable));
+                ? ResponseEntity.ok(postService.getOldPostsOfUser(username, id, pageable))
+                : ResponseEntity.ok(postService.getNewPostsOfUser(username, id, pageable));
     }
 }
 
