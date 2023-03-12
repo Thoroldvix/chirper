@@ -22,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -365,9 +366,83 @@ public class PostControllerTest {
         });
         assertThat(response.getBody().getTotalElements()).isEqualTo(0);
     }
+    @Test
+    public void getNewPosts_whenThereArePosts_receiveListOfItemsAfterProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<List<Object>> response = getNewPosts(fourth.id(), new ParameterizedTypeReference<List<Object>>() {
+        });
+        assertThat(response.getBody().size()).isEqualTo(1);
+    }
+    @Test
+    public void getNewPosts_whenThereArePosts_receiveListOfPostDtoAfterProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<List<PostDto>> response = getNewPosts(fourth.id(), new ParameterizedTypeReference<List<PostDto>>() {
+        });
+        assertThat(response.getBody().get(0).timestamp()).isGreaterThan(0);
+    }
+    @Test
+    public void getNewPostsOfUser_whenUserExistThereAreNoPosts_receiveOk() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+
+        ResponseEntity<Object> response = getNewPostsOfUser(5L, user.getUsername(), new ParameterizedTypeReference<Object>(){});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+    @Test
+    public void getNewPostsOfUser_whenUserExistAndThereArePosts_receiveListWithItemsProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<List<PostDto>> response = getNewPostsOfUser(fourth.id(), user.getUsername(), new ParameterizedTypeReference<List<PostDto>>() {
+        });
+        assertThat(response.getBody().size()).isEqualTo(1);
+    }
+    @Test
+    public void getNewPostsOfUser_whenUserDoesNotExistThereAreNoPosts_receiveNotFound() {
+        ResponseEntity<Object> response = getNewPostsOfUser(5L, "user1", new ParameterizedTypeReference<Object>(){});
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+//    @Test
+//    public void getOldPostsOfUser_whenUserExistAndThereAreNoPosts_receivePageWithZeroItemsBeforeProvidedId() {
+//        UserEntity user1 = userService.save(TestUtils.createValidUser("user1"));
+//        postService.save(TestUtils.createValidPost(), user1.getId());
+//        postService.save(TestUtils.createValidPost(), user1.getId());
+//        postService.save(TestUtils.createValidPost(), user1.getId());
+//        PostDto fourth = postService.save(TestUtils.createValidPost(), user1.getId());
+//        postService.save(TestUtils.createValidPost(), user1.getId());
+//
+//        UserEntity user2 = userService.save(TestUtils.createValidUser("user2"));
+//
+//        ResponseEntity<TestPage<PostDto>> response = getOldPostsOfUser(fourth.id(), user2.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
+//        });
+//        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+//    }
+    private <T> ResponseEntity<T> getNewPostsOfUser(Long postId, String username, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_USERS + "/" + username + "/posts/" + postId + "?direction=after&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
 
     private <T> ResponseEntity<T> getPostsOfUser(String username, ParameterizedTypeReference<T> responseType) {
         String path = API_1_0_USERS + "/" + username + "/posts";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+    private <T> ResponseEntity<T> getNewPosts(long postId, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_POSTS + "/" + postId + "?direction=after&sort=id,desc";
         return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
     }
 

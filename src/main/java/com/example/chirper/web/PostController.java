@@ -8,6 +8,7 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
@@ -38,15 +39,23 @@ public class PostController {
     }
 
     @GetMapping("/posts/{id:\\d+}")
-    public Page<PostDto> getPostsRelative(@PathVariable Long id, Pageable pageable) {
-        return postService.getOldPosts(id, pageable);
+    public ResponseEntity<?> getPostsRelative(@PathVariable Long id,
+                                              @RequestParam(name = "direction", defaultValue = "after") String direction,
+                                              Pageable pageable) {
+        return !"after".equalsIgnoreCase(direction) ?
+                ResponseEntity.ok().body(postService.getOldPosts(id, pageable))
+                : ResponseEntity.ok().body(postService.getNewPosts(id, pageable));
+
     }
 
     @GetMapping("/users/{username}/posts/{id:\\d+}")
-    public Page<PostDto> getPostsRelativeForUser(@PathVariable String username,
-                                                 @PathVariable Long id,
-                                                 Pageable pageable) {
-      return  postService.getOldPostsOfUser(username, id, pageable);
+    public ResponseEntity<?> getPostsRelativeForUser(@PathVariable String username,
+                                                     @PathVariable Long id,
+                                                     @RequestParam(name = "direction", defaultValue = "after") String direction,
+                                                     Pageable pageable) {
+        return !"after".equalsIgnoreCase(direction)
+                ? ResponseEntity.ok().body(postService.getOldPostsOfUser(username, id, pageable))
+                : ResponseEntity.ok().body(postService.getNewPostsOfUser(username, id, pageable));
     }
 }
 
