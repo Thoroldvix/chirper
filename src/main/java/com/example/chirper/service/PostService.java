@@ -54,18 +54,18 @@ public class PostService {
     }
 
     public Page<PostDto> getPostsOfUser(String username, Pageable pageable) {
-        UserEntity user = userService.getByUsername(username);
+        UserEntity userFromDB = userService.getByUsername(username);
 
 
-        return postRepository.findAllByUser(user, pageable)
+        return postRepository.findAllByUser(userFromDB, pageable)
                 .map(postMapper::toPostDto);
     }
 
     public Page<PostDto> getOldPosts(Long id, String username, Pageable pageable) {
         Specification<Post> spec = Specification.where(idLessThan(id));
         if (username != null) {
-            UserEntity user = userService.getByUsername(username);
-            spec = spec.and(userIs(user));
+            UserEntity userFromDB = userService.getByUsername(username);
+            spec = spec.and(isSameUser(userFromDB));
             return postRepository.findAll(spec, pageable).map(postMapper::toPostDto);
         }
         return postRepository.findAll(spec, pageable).map(postMapper::toPostDto);
@@ -75,30 +75,28 @@ public class PostService {
     public List<PostDto> getNewPosts(Long id, String username, Pageable pageable) {
         Specification<Post> spec = Specification.where(idGreaterThan(id));
         if (username != null) {
-            UserEntity user = userService.getByUsername(username);
-            spec = spec.and(userIs(user));
-            return postRepository.findAll(spec, pageable.getSort()).stream()
-                    .map(postMapper::toPostDto)
-                    .collect(Collectors.toList());
+            UserEntity userFromDB = userService.getByUsername(username);
+            spec = spec.and(isSameUser(userFromDB));
+            return  postMapper.toPostDtoList(postRepository.findAll(spec, pageable.getSort()));
         }
-        return postRepository.findAll(spec, pageable.getSort()).stream()
-                .map(postMapper::toPostDto)
-                .collect(Collectors.toList());
+        return postMapper.toPostDtoList(postRepository.findAll(spec, pageable.getSort()));
     }
+
+
 
 
     public Long getNewPostCount(Long id, String username) {
         Specification<Post> spec = Specification.where(idGreaterThan(id));
         if (username != null) {
-            UserEntity user = userService.getByUsername(username);
-            spec = spec.and(userIs(user));
+            UserEntity userFromDB = userService.getByUsername(username);
+            spec = spec.and(isSameUser(userFromDB));
             return postRepository.count(spec);
         }
         return postRepository.count(spec);
     }
 
 
-    private Specification<Post> userIs(UserEntity user) {
+    private Specification<Post> isSameUser(UserEntity user) {
         return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user"), user);
     }
 

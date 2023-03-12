@@ -9,8 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.List;
 
-@Mapper(componentModel = "spring",  uses = UserMapper.class)
+@Mapper(componentModel = "spring", uses = UserMapper.class)
 public abstract class PostMapper {
     protected UserMapper userMapper;
 
@@ -19,10 +20,10 @@ public abstract class PostMapper {
         this.userMapper = userMapper;
     }
 
-    public PostDto toPostDto(Post post){
-       if (post == null) {
-           return null;
-       }
+    public PostDto toPostDto(Post post) {
+        if (post == null) {
+            return null;
+        }
         Long id = post.getId();
         String content = post.getContent();
         UserDto user = userMapper.toUserDto(post.getUser());
@@ -31,6 +32,8 @@ public abstract class PostMapper {
 
         return new PostDto(id, content, timesTamp, user);
     }
+
+    public abstract List<PostDto> toPostDtoList(List<Post> posts);
 
     private long toMillis(LocalDateTime createdAt) {
         if (createdAt == null) {
