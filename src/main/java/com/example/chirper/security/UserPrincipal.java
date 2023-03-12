@@ -1,7 +1,7 @@
 package com.example.chirper.security;
 
 import com.example.chirper.persistence.entity.UserEntity;
-import com.example.chirper.persistence.entity.enums.Role;
+import com.example.chirper.persistence.entity.Role;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
 

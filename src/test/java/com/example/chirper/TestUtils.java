@@ -2,7 +2,7 @@ package com.example.chirper;
 
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.persistence.entity.UserEntity;
-import com.example.chirper.persistence.entity.enums.Role;
+import com.example.chirper.persistence.entity.Role;
 import lombok.experimental.UtilityClass;
 
 

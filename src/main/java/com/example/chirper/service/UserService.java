@@ -4,7 +4,7 @@ import com.example.chirper.dto.UserDto;
 import com.example.chirper.dto.UserUpdateDto;
 import com.example.chirper.maper.UserMapper;
 import com.example.chirper.persistence.entity.UserEntity;
-import com.example.chirper.persistence.entity.enums.Role;
+import com.example.chirper.persistence.entity.Role;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.security.UserPrincipal;
 import lombok.SneakyThrows;

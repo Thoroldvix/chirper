@@ -1,6 +1,5 @@
 package com.example.chirper.persistence.entity;
 
-import com.example.chirper.persistence.entity.enums.Role;
 import com.example.chirper.validation.UniqueUsername;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
