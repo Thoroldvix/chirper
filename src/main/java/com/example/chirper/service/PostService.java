@@ -1,6 +1,7 @@
 package com.example.chirper.service;
 
 import com.example.chirper.dto.PostDto;
+import com.example.chirper.dto.UserDto;
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
@@ -23,12 +24,15 @@ public class PostService {
 
     private final ModelMapper modelMapper;
 
+    private final UserService userService;
+
     @Autowired
-    public PostService(PostRepository postRepository, UserRepository userRepository, ModelMapper modelMapper) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, ModelMapper modelMapper, UserService userService) {
         this.postRepository = postRepository;
 
         this.userRepository = userRepository;
         this.modelMapper = modelMapper;
+        this.userService = userService;
     }
 
     @Transactional
@@ -42,6 +46,21 @@ public class PostService {
     }
 
     public Page<PostDto> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable).map(post -> modelMapper.map(post, PostDto.class));
+        return postRepository.findAll(pageable).map(this::toPostDto);
+    }
+
+    public Page<PostDto> getPostsOfUser(String username, Pageable pageable) {
+        UserDto user = userService.getByUsername(username);
+
+        return postRepository.findAllByUserId(user.getId(), pageable)
+                .map(this::toPostDto);
+    }
+
+    public Page<PostDto> getOldPosts(Long id, Pageable pageable) {
+        return postRepository.findByIdLessThan(id, pageable).map(this::toPostDto);
+    }
+
+    private PostDto toPostDto(Post post) {
+        return modelMapper.map(post, PostDto.class);
     }
 }

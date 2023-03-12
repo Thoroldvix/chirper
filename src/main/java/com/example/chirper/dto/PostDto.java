@@ -1,11 +1,8 @@
 package com.example.chirper.dto;
 
-import com.example.chirper.persistence.entity.Post;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.modelmapper.ModelMapper;
-
-import java.time.ZoneId;
 
 @Data
 @NoArgsConstructor

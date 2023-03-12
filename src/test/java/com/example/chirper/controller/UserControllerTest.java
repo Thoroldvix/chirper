@@ -36,7 +36,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class UserControllerTest extends AbstractTest {
 
-    private static final String API_1_0_USERS = "/api/1.0/users";
+    public static final String API_1_0_USERS = "/api/1.0/users";
     @Autowired
     private TestRestTemplate testRestTemplate;
 

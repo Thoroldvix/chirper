@@ -26,13 +26,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.example.chirper.controller.UserControllerTest.API_1_0_USERS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
 public class PostControllerTest {
 
-    private  final String API_1_0_POSTS = "/api/1.0/posts";
+    private final String API_1_0_POSTS = "/api/1.0/posts";
     @Autowired
     private TestRestTemplate testRestTemplate;
 
@@ -64,6 +65,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsUnauthorized_receiveUnauthorized() {
 
@@ -72,6 +74,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsUnauthorized_receiveApiError() {
 
@@ -80,6 +83,7 @@ public class PostControllerTest {
         ResponseEntity<ApiError> response = postPost(post, ApiError.class);
         assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_PostSavedToDatabase() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -89,6 +93,7 @@ public class PostControllerTest {
         postPost(post, Object.class);
         assertThat(postRepository.count()).isEqualTo(1);
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_PostSavedToDatabaseWithTimestamp() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -100,6 +105,7 @@ public class PostControllerTest {
         Post inDB = postRepository.findAll().get(0);
         assertThat(inDB.getCreatedAt()).isNotNull();
     }
+
     @Test
     public void postPost_whenPostContentIsNullAndUserIsAuthorized_receiveBadRequest() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -109,6 +115,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void postPost_whenPostContentLessThan10CharsAndUserIsAuthorized_receiveBadRequest() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -119,6 +126,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void postPost_whenPostContentIs5000CharsAndUserIsAuthorized_receiveOk() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -130,6 +138,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
     @Test
     public void postPost_whenPostContentMoreThan5000CharsAndUserIsAuthorized_receiveBadRequest() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -141,6 +150,7 @@ public class PostControllerTest {
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
+
     @Test
     public void postPost_whenPostContentIsNullAndUserIsAuthorized_receiveApiErrorWithValidationErrors() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -151,6 +161,7 @@ public class PostControllerTest {
         Map<String, String> validationErrors = response.getBody().getValidationErrors();
         assertThat(validationErrors.get("content")).isNotNull();
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_postSavedWithAuthenticatedUserInfo() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -162,6 +173,7 @@ public class PostControllerTest {
         assertThat(inDB.getUser().getUsername()).isEqualTo("user1");
 
     }
+
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_postCanBeAccessedFromUserEntity() {
         userService.save(TestUtils.createValidUser("user1"));
@@ -174,34 +186,43 @@ public class PostControllerTest {
         assertThat(inDBUser).isNotNull();
         assertThat(inDBUser.getPosts().size()).isEqualTo(1);
     }
+
     @Test
     public void getPosts_whenThereAreNoPostsInDB_receiveOk() {
-        ResponseEntity<Object> response = getPosts(new ParameterizedTypeReference<Object>() {});
+        ResponseEntity<Object> response = getPosts(new ParameterizedTypeReference<Object>() {
+        });
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
+
     @Test
     public void getPosts_whenThereAreNoPosts_receivePageWithZeroItems() {
-        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {});
+        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {
+        });
         assertThat(response.getBody().getTotalElements()).isEqualTo(0);
     }
+
     @Test
     public void getPosts_whenThereArePosts_receivePageWithItems() {
         UserEntity user = userService.save(TestUtils.createValidUser("user1"));
         postService.save(TestUtils.createValidPost(), user.getId());
         postService.save(TestUtils.createValidPost(), user.getId());
         postService.save(TestUtils.createValidPost(), user.getId());
-        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {});
+        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {
+        });
         assertThat(response.getBody().getTotalElements()).isEqualTo(3);
     }
+
     @Test
     public void getPosts_whenThereArePosts_receivePageWithPostDto() {
         UserEntity user = userService.save(TestUtils.createValidUser("user1"));
         postService.save(TestUtils.createValidPost(), user.getId());
 
-        ResponseEntity<TestPage<PostDto>> response = getPosts(new ParameterizedTypeReference<TestPage<PostDto>>() {});
+        ResponseEntity<TestPage<PostDto>> response = getPosts(new ParameterizedTypeReference<TestPage<PostDto>>() {
+        });
         PostDto storedPost = response.getBody().getContent().get(0);
         assertThat(storedPost.getUser().getUsername()).isEqualTo(user.getUsername());
     }
+
     @Test
     public void postPosts_whenPostIsValidAndUserIsAuthorized_receivePostDto() {
         UserEntity user = userService.save(TestUtils.createValidUser("user1"));
@@ -212,11 +233,114 @@ public class PostControllerTest {
         assertThat(response.getBody().getUser().getUsername()).isEqualTo(user.getUsername());
     }
 
+    @Test
+    public void getPostsOfUser_whenUserExists_receiveOk() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        ResponseEntity<Object> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<Object>() {
+        });
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getPostsOfUser_whenUserDoesNotExists_receiveNotFound() {
+        ResponseEntity<Object> response = getPostsOfUser("unknown-user", new ParameterizedTypeReference<Object>() {
+        });
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
+    }
+
+    @Test
+    public void getPostsOfUser_whenUserExists_receivePageWithZeroHoaxes() {
+        ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {
+        });
+        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
+    }
+
+    @Test
+    public void getPostsOfUser_whenUserExistsWithPosts_receivePageWithPostDto() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
+        });
+        PostDto storedPost = response.getBody().getContent().get(0);
+        assertThat(storedPost.getUser().getUsername()).isEqualTo(user.getUsername());
+    }
+
+    @Test
+    public void getPostsOfUser_whenUserExistsWithMultiplePosts_receivePageWithMatchingPostsCount() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
+        });
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+
+    @Test
+    public void getPostsOfUser_whenMultipleUserExistsWithMultiplePosts_receivePageWithMatchingPostsCount() {
+        UserEntity userWithThreePosts = userService.save(TestUtils.createValidUser("user1"));
+        IntStream.rangeClosed(1, 3).forEach(i -> postService.save(TestUtils.createValidPost(), userWithThreePosts.getId()));
+
+        UserEntity userWithFivePosts = userService.save(TestUtils.createValidUser("user2"));
+        IntStream.rangeClosed(1, 5).forEach(i -> postService.save(TestUtils.createValidPost(), userWithFivePosts.getId()));
+
+
+        ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(userWithFivePosts.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
+        });
+        assertThat(response.getBody().getTotalElements()).isEqualTo(5);
+    }
+
+    @Test
+    public void getOldPosts_whenThereAreNoPosts_receiveOk() {
+        ResponseEntity<Object> response = getOldPosts(5L, new ParameterizedTypeReference<Object>() {
+        });
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void getOldPosts_whenThereArePosts_receivePageWithItemsProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<TestPage<Object>> response = getOldPosts(fourth.getId(), new ParameterizedTypeReference<TestPage<Object>>() {
+        });
+        assertThat(response.getBody().getTotalElements()).isEqualTo(3);
+    }
+    @Test
+    public void getOldPosts_whenThereArePosts_receivePageWithPostDtoBeforeProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<TestPage<PostDto>> response = getOldPosts(fourth.getId(), new ParameterizedTypeReference<TestPage<PostDto>>() {
+        });
+        assertThat(response.getBody().getContent().get(0).getTimestamp()).isGreaterThan(0);
+    }
+
+    private <T> ResponseEntity<T> getPostsOfUser(String username, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_USERS + "/" + username + "/posts";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
+    private <T> ResponseEntity<T> getOldPosts(long postId, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_POSTS + "/" + postId + "?direction=before&page=0&size=5&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
     private <T> ResponseEntity<T> getPosts(ParameterizedTypeReference<T> responseType) {
         return testRestTemplate.exchange(API_1_0_POSTS, HttpMethod.GET, null, responseType);
     }
 
-    private<T> ResponseEntity<T> postPost(Post post, Class<T> responseType) {
+    private <T> ResponseEntity<T> postPost(Post post, Class<T> responseType) {
         return testRestTemplate.postForEntity(API_1_0_POSTS, post, responseType);
     }
 

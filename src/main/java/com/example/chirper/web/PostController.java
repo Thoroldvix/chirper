@@ -23,12 +23,22 @@ public class PostController {
     }
 
     @PostMapping("/posts")
-    public PostDto createHoax(@Valid @RequestBody Post post, @AuthenticationPrincipal UserPrincipal loggedInUser) {
+    public PostDto createPost(@Valid @RequestBody Post post, @AuthenticationPrincipal UserPrincipal loggedInUser) {
        return  postService.save(post, loggedInUser.getId());
     }
     @GetMapping("/posts")
     public Page<PostDto> getAllPosts(Pageable pageable) {
         return postService.getAllPosts(pageable);
+    }
+
+    @GetMapping("/users/{username}/posts")
+    public Page<PostDto> getPostsOfUser(@PathVariable String username, Pageable pageable) {
+        return postService.getPostsOfUser(username, pageable);
+    }
+
+    @GetMapping("/posts/{id:[0-9]+}")
+    public Page<PostDto> getPostsRelative(@PathVariable Long id, Pageable pageable) {
+        return postService.getOldPosts(id, pageable);
     }
 }
 
