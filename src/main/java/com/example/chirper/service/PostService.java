@@ -1,15 +1,15 @@
 package com.example.chirper.service;
 
 import com.example.chirper.dto.PostDto;
-import com.example.chirper.dto.UserDto;
 import com.example.chirper.maper.PostMapper;
 import com.example.chirper.persistence.entity.Post;
+import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.ResponseEntity;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,33 +54,59 @@ public class PostService {
     }
 
     public Page<PostDto> getPostsOfUser(String username, Pageable pageable) {
-        UserDto user = userService.getByUsername(username);
+        UserEntity user = userService.getByUsername(username);
 
 
-        return postRepository.findAllByUserId(user.id(), pageable)
+        return postRepository.findAllByUser(user, pageable)
                 .map(postMapper::toPostDto);
     }
 
-    public Page<PostDto> getOldPosts(Long id, Pageable pageable) {
-        return postRepository.findByIdLessThan(id, pageable).map(postMapper::toPostDto);
+    public Page<PostDto> getOldPosts(Long id, String username, Pageable pageable) {
+        Specification<Post> spec = Specification.where(idLessThan(id));
+        if (username != null) {
+            UserEntity user = userService.getByUsername(username);
+            spec = spec.and(userIs(user));
+            return postRepository.findAll(spec, pageable).map(postMapper::toPostDto);
+        }
+        return postRepository.findAll(spec, pageable).map(postMapper::toPostDto);
     }
 
 
-    public Page<PostDto> getOldPostsOfUser(String username, Long id, Pageable pageable) {
-        UserDto user = userService.getByUsername(username);
-        return postRepository.findByIdLessThanAndUserId(id, user.id(), pageable).map(postMapper::toPostDto);
-    }
-
-    public List<PostDto> getNewPosts(Long id, Pageable pageable) {
-        return postRepository.findByIdGreaterThan(id, pageable.getSort()).stream()
+    public List<PostDto> getNewPosts(Long id, String username, Pageable pageable) {
+        Specification<Post> spec = Specification.where(idGreaterThan(id));
+        if (username != null) {
+            UserEntity user = userService.getByUsername(username);
+            spec = spec.and(userIs(user));
+            return postRepository.findAll(spec, pageable.getSort()).stream()
+                    .map(postMapper::toPostDto)
+                    .collect(Collectors.toList());
+        }
+        return postRepository.findAll(spec, pageable.getSort()).stream()
                 .map(postMapper::toPostDto)
                 .collect(Collectors.toList());
     }
 
-    public List<PostDto> getNewPostsOfUser(String username, Long id, Pageable pageable) {
-        UserDto user = userService.getByUsername(username);
-        return postRepository.findByIdGreaterThanAndUserId(id, user.id(), pageable.getSort()).stream()
-                .map(postMapper::toPostDto)
-                .collect(Collectors.toList());
+
+    public Long getNewPostCount(Long id, String username) {
+        Specification<Post> spec = Specification.where(idGreaterThan(id));
+        if (username != null) {
+            UserEntity user = userService.getByUsername(username);
+            spec = spec.and(userIs(user));
+            return postRepository.count(spec);
+        }
+        return postRepository.count(spec);
+    }
+
+
+    private Specification<Post> userIs(UserEntity user) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user"), user);
+    }
+
+    private Specification<Post> idLessThan(Long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("id"), id);
+    }
+
+    private Specification<Post> idGreaterThan(Long id) {
+        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("id"), id);
     }
 }
