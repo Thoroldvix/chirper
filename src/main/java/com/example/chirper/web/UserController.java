@@ -3,6 +3,7 @@ package com.example.chirper.web;
 import com.example.chirper.dto.GenericResponse;
 import com.example.chirper.dto.UserDto;
 import com.example.chirper.dto.UserUpdateDto;
+import com.example.chirper.maper.UserMapper;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.security.UserPrincipal;
 import com.example.chirper.service.UserService;
@@ -20,9 +21,12 @@ public class UserController {
 
     private final UserService userService;
 
+    private final UserMapper userMapper;
+
     @Autowired
-    public UserController(UserService userService) {
+    public UserController(UserService userService, UserMapper userMapper) {
         this.userService = userService;
+        this.userMapper = userMapper;
     }
 
     @GetMapping("/users")
@@ -32,7 +36,7 @@ public class UserController {
 
     @GetMapping("/users/{username}")
     public UserDto getUserByName(@PathVariable String username) {
-        return userService.getByUsername(username);
+        return userMapper.toUserDto(userService.getByUsername(username));
     }
 
     @PutMapping("/users/{id:\\d+}")

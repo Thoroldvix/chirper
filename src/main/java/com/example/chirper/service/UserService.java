@@ -52,11 +52,10 @@ public class UserService {
     }
 
 
-    public UserDto getByUsername(String username) {
-        UserEntity user = userRepository.findByUsername(username)
+    public UserEntity getByUsername(String username) {
+       return  userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " not found"));
 
-        return userMapper.toUserDto(user);
     }
 
 
