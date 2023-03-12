@@ -400,7 +400,7 @@ public class PostControllerTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
     @Test
-    public void getNewPostsOfUser_whenUserExistAndThereArePosts_receiveListWithItemsProvidedId() {
+    public void getNewPostsOfUser_whenUserExistAndThereArePosts_receiveListWithItemsAfterProvidedId() {
         UserEntity user = userService.save(TestUtils.createValidUser("user1"));
         postService.save(TestUtils.createValidPost(), user.getId());
         postService.save(TestUtils.createValidPost(), user.getId());
@@ -417,23 +417,57 @@ public class PostControllerTest {
         ResponseEntity<Object> response = getNewPostsOfUser(5L, "user1", new ParameterizedTypeReference<Object>(){});
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.NOT_FOUND);
     }
-//    @Test
-//    public void getOldPostsOfUser_whenUserExistAndThereAreNoPosts_receivePageWithZeroItemsBeforeProvidedId() {
-//        UserEntity user1 = userService.save(TestUtils.createValidUser("user1"));
-//        postService.save(TestUtils.createValidPost(), user1.getId());
-//        postService.save(TestUtils.createValidPost(), user1.getId());
-//        postService.save(TestUtils.createValidPost(), user1.getId());
-//        PostDto fourth = postService.save(TestUtils.createValidPost(), user1.getId());
-//        postService.save(TestUtils.createValidPost(), user1.getId());
-//
-//        UserEntity user2 = userService.save(TestUtils.createValidUser("user2"));
-//
-//        ResponseEntity<TestPage<PostDto>> response = getOldPostsOfUser(fourth.id(), user2.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
-//        });
-//        assertThat(response.getBody().getTotalElements()).isEqualTo(0);
-//    }
+    @Test
+    public void getNewPostsOfUser_whenUserExistAndThereAreNoPosts_receiveListWithZeroItemsAfterProvidedId() {
+        UserEntity user1 = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user1.getId());
+        postService.save(TestUtils.createValidPost(), user1.getId());
+        postService.save(TestUtils.createValidPost(), user1.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user1.getId());
+        postService.save(TestUtils.createValidPost(), user1.getId());
+
+        UserEntity user2 = userService.save(TestUtils.createValidUser("user2"));
+
+        ResponseEntity<List<PostDto>> response = getNewPostsOfUser(fourth.id(), user2.getUsername(), new ParameterizedTypeReference<List<PostDto>>() {
+        });
+        assertThat(response.getBody().size()).isEqualTo(0);
+    }
+    @Test
+    public void getNewPostCount_whenThereArePosts_receiveCountAfterProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<Map<String, Long>> response = getNewPostCount(fourth.id(), new ParameterizedTypeReference<Map<String, Long>>(){});
+        assertThat(response.getBody().get("count")).isEqualTo(1);
+    }
+    @Test
+    public void getNewPostCountOfUser_whenThereArePosts_receiveCountAfterProvidedId() {
+        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
+        postService.save(TestUtils.createValidPost(), user.getId());
+
+        ResponseEntity<Map<String, Long>> response = getNewPostCountOfUser(fourth.id(), user.getUsername(), new ParameterizedTypeReference<Map<String, Long>>(){});
+        assertThat(response.getBody().get("count")).isEqualTo(1);
+    }
+
     private <T> ResponseEntity<T> getNewPostsOfUser(Long postId, String username, ParameterizedTypeReference<T> responseType) {
         String path = API_1_0_USERS + "/" + username + "/posts/" + postId + "?direction=after&sort=id,desc";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+
+    private <T> ResponseEntity<T> getNewPostCount(Long postId, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_POSTS + "/" + postId + "?direction=after&count=true";
+        return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
+    }
+    private <T> ResponseEntity<T> getNewPostCountOfUser(Long postId, String username, ParameterizedTypeReference<T> responseType) {
+        String path = API_1_0_USERS + "/" + username + "/posts/" + postId + "?direction=after&count=true";;
         return testRestTemplate.exchange(path, HttpMethod.GET, null, responseType);
     }
 

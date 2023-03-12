@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+
 @RestController
 @RequestMapping("/api/1.0")
 public class PostController {
@@ -38,24 +40,21 @@ public class PostController {
         return postService.getPostsOfUser(username, pageable);
     }
 
-    @GetMapping("/posts/{id:\\d+}")
+    @GetMapping({"/posts/{id:\\d+}", "/users/{username}/posts/{id:\\d+}"})
     public ResponseEntity<?> getPostsRelative(@PathVariable Long id,
+                                              @PathVariable(required = false) String username,
                                               @RequestParam(name = "direction", defaultValue = "after") String direction,
+                                              @RequestParam(name = "count", defaultValue = "false", required = false) boolean count,
                                               Pageable pageable) {
+        if (count) {
+            Long newPostCount = postService.getNewPostCount(id, username);
+            return ResponseEntity.ok(Collections.singletonMap("count", newPostCount));
+        }
         return !"after".equalsIgnoreCase(direction) ?
-                ResponseEntity.ok(postService.getOldPosts(id, pageable))
-                : ResponseEntity.ok(postService.getNewPosts(id, pageable));
+                ResponseEntity.ok(postService.getOldPosts(id, username, pageable))
+                : ResponseEntity.ok(postService.getNewPosts(id, username, pageable));
 
     }
 
-    @GetMapping("/users/{username}/posts/{id:\\d+}")
-    public ResponseEntity<?> getPostsRelativeForUser(@PathVariable String username,
-                                                     @PathVariable Long id,
-                                                     @RequestParam(name = "direction", defaultValue = "after") String direction,
-                                                     Pageable pageable) {
-        return !"after".equalsIgnoreCase(direction)
-                ? ResponseEntity.ok(postService.getOldPostsOfUser(username, id, pageable))
-                : ResponseEntity.ok(postService.getNewPostsOfUser(username, id, pageable));
-    }
 }
 
