@@ -52,7 +52,7 @@ spring:
     activate:
       on-profile: test
   jpa:
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
