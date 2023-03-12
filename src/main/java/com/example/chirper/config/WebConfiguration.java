@@ -1,5 +1,6 @@
 package com.example.chirper.config;
 
+import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -17,18 +18,17 @@ public class WebConfiguration implements WebMvcConfigurer {
 
     private final AppConfiguration appConfiguration;
 
-    @Override
-    public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        registry.addResourceHandler("/images/**")
-                .addResourceLocations("file:" + appConfiguration.getUploadPath() +"/")
-                .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS));
-    }
-
     @Autowired
     public WebConfiguration(AppConfiguration appConfiguration) {
         this.appConfiguration = appConfiguration;
     }
 
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        registry.addResourceHandler("/images/**")
+                .addResourceLocations("file:" + appConfiguration.getUploadPath() + "/")
+                .setCacheControl(CacheControl.maxAge(365, TimeUnit.DAYS));
+    }
 
     @Bean
     public CommandLineRunner createUploadFolder() {
@@ -39,11 +39,16 @@ public class WebConfiguration implements WebMvcConfigurer {
         };
     }
 
-    private void createNonExistingFolder(String path) {
+    @Bean
+    public Tika tika() {
+        return new Tika();
+    }
+
+    private boolean createNonExistingFolder(String path) {
         File folder = new File(path);
-        boolean folderExist = folder.exists() && folder.isDirectory();
-        if (!folderExist) {
-            folder.mkdir();
+        if ((folder.exists() && folder.isDirectory())) {
+            return false;
         }
+        return folder.mkdir();
     }
 }

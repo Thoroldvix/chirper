@@ -35,8 +35,5 @@ public class ApplicationRunner {
 
 
 
-    @Bean
-    public Tika tika() {
-        return new Tika();
-    }
+
 }
