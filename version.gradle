@@ -1,0 +1,9 @@
+ext {
+    versions = [
+            'springdoc': '2.0.3',
+            'mapstruct': '1.5.3.Final',
+            'commons': '2.11.0',
+            'tika': '2.7.0',
+            'httpcomponents': '5.1.3'
+    ]
+}
