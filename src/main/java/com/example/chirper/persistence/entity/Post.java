@@ -7,14 +7,13 @@ import lombok.*;
 import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 @Getter
 @Setter
 @ToString
-@RequiredArgsConstructor
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Post {
 
@@ -31,7 +30,6 @@ public class Post {
     private UserEntity user;
 
     private LocalDateTime createdAt;
-
 
 
     @Override
