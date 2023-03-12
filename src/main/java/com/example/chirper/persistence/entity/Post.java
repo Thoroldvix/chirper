@@ -3,13 +3,18 @@ package com.example.chirper.persistence.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.Data;
+import lombok.*;
+import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.Objects;
 
-@Data
+@Getter
+@Setter
+@ToString
+@RequiredArgsConstructor
 @Entity
 public class Post {
 
@@ -27,11 +32,18 @@ public class Post {
 
     private LocalDateTime createdAt;
 
-    public long toMillis() {
-        if (createdAt == null) {
-            return 0;
-        }
-        ZonedDateTime zdt = ZonedDateTime.of(createdAt, ZoneId.systemDefault());
-        return zdt.toInstant().toEpochMilli();
+
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+        Post post = (Post) o;
+        return getId() != null && Objects.equals(getId(), post.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return getClass().hashCode();
     }
 }

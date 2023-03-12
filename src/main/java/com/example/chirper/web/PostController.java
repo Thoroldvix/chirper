@@ -24,8 +24,9 @@ public class PostController {
 
     @PostMapping("/posts")
     public PostDto createPost(@Valid @RequestBody Post post, @AuthenticationPrincipal UserPrincipal loggedInUser) {
-       return  postService.save(post, loggedInUser.getId());
+        return postService.save(post, loggedInUser.getId());
     }
+
     @GetMapping("/posts")
     public Page<PostDto> getAllPosts(Pageable pageable) {
         return postService.getAllPosts(pageable);
@@ -36,9 +37,16 @@ public class PostController {
         return postService.getPostsOfUser(username, pageable);
     }
 
-    @GetMapping("/posts/{id:[0-9]+}")
+    @GetMapping("/posts/{id:\\d+}")
     public Page<PostDto> getPostsRelative(@PathVariable Long id, Pageable pageable) {
         return postService.getOldPosts(id, pageable);
+    }
+
+    @GetMapping("/users/{username}/posts/{id:\\d+}")
+    public Page<PostDto> getPostsRelativeForUser(@PathVariable String username,
+                                                 @PathVariable Long id,
+                                                 Pageable pageable) {
+      return  postService.getOldPostsOfUser(username, id, pageable);
     }
 }
 

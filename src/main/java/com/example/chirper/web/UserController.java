@@ -35,7 +35,7 @@ public class UserController {
         return userService.getByUsername(username);
     }
 
-    @PutMapping("/users/{id:[0-9]+}")
+    @PutMapping("/users/{id:\\d+}")
     @PreAuthorize("hasRole('ROLE_ADMIN') or #id == #loggedInUser.id")
     public UserDto updateUser(@PathVariable Long id,
                            @AuthenticationPrincipal UserPrincipal loggedInUser,

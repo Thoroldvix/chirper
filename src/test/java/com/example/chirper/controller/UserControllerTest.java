@@ -66,7 +66,7 @@ class UserControllerTest extends AbstractTest {
     void postUser_whenUserIsValid_receiveSuccessMessage() {
         UserEntity userEntity = createValidUser();
         ResponseEntity<GenericResponse> response = postSignup(userEntity, GenericResponse.class);
-        assertThat(Objects.requireNonNull(response.getBody()).getMessage()).isNotNull();
+        assertThat(Objects.requireNonNull(response.getBody()).message()).isNotNull();
     }
 
     @Test
@@ -415,7 +415,7 @@ class UserControllerTest extends AbstractTest {
     public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveOk() {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), null);
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<Object> response = putUser(user.getId(), requestEntity, Object.class);
@@ -426,23 +426,23 @@ class UserControllerTest extends AbstractTest {
     public void putUser_whenValidRequestBodyFromAuthorizedUser_displayNameUpdated() {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), null);
 
         Optional<UserEntity> userInDB = userRepository.findByUsername(user.getUsername());
         assertTrue(userInDB.isPresent());
-        assertThat(userInDB.get().getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+        assertThat(userInDB.get().getDisplayName()).isEqualTo(updatedUser.displayName());
     }
 
     @Test
     public void putUser_whenValidRequestBodyFromAuthorizedUser_receiveUserDtoWithUpdatedDisplayName() {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), null);
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
 
-        assertThat(Objects.requireNonNull(response.getBody()).getDisplayName()).isEqualTo(updatedUser.getDisplayName());
+        assertThat(Objects.requireNonNull(response.getBody()).displayName()).isEqualTo(updatedUser.displayName());
 
     }
 
@@ -452,15 +452,16 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
 
         String imageString = readFileToBase64("profile.png");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
+
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
 
-        assertThat(Objects.requireNonNull(response.getBody()).getImage()).isNotEqualTo("profile-image.png");
+        assertThat(Objects.requireNonNull(response.getBody()).image()).isNotEqualTo("profile-image.png");
 
     }
 
@@ -470,15 +471,16 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
 
         String imageString = readFileToBase64("profile.png");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
+
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
 
-        String storedImageName = response.getBody().getImage();
+        String storedImageName = response.getBody().image();
 
         String profilePicturePath = appConfiguration.getFullProfileImagesPath() + "/" + storedImageName;
 
@@ -493,10 +495,10 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
 
         String imageString = readFileToBase64("test-jpg.jpg");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
+
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
@@ -510,10 +512,9 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
 
         String imageString = readFileToBase64("test-gif.gif");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<Object> response = putUser(user.getId(), requestEntity, Object.class);
@@ -527,10 +528,11 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
+
 
         String imageString = readFileToBase64("test-txt.txt");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
+
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<ApiError> response = putUser(user.getId(), requestEntity, ApiError.class);
@@ -543,7 +545,7 @@ class UserControllerTest extends AbstractTest {
     public void putUser_withInvalidRequestBodyWithNullDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = new UserUpdateDto();
+        UserUpdateDto updatedUser = new UserUpdateDto(null, null);
 
 
 
@@ -556,8 +558,9 @@ class UserControllerTest extends AbstractTest {
     public void putUser_withInvalidRequestBodyWithLessThanMinSizeForDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = new UserUpdateDto();
-        updatedUser.setDisplayName("abc");
+
+        UserUpdateDto updatedUser = new UserUpdateDto("a", null);
+
 
 
 
@@ -570,9 +573,9 @@ class UserControllerTest extends AbstractTest {
     public void putUser_withInvalidRequestBodyWithMoreThanMaxSizeForDisplayNameFromAuthorizedUser_receiveBadRequest() throws IOException {
         UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
-        UserUpdateDto updatedUser = new UserUpdateDto();
+
         String valueOf256Chars = IntStream.rangeClosed(1, 256).mapToObj(i -> "a").collect(Collectors.joining());
-        updatedUser.setDisplayName(valueOf256Chars);
+        UserUpdateDto updatedUser =  new UserUpdateDto(user.getDisplayName(), valueOf256Chars);
 
 
 
@@ -587,17 +590,17 @@ class UserControllerTest extends AbstractTest {
         authenticate(user.getUsername());
 
 
-        UserUpdateDto updatedUser = createValidUserUpdateDto();
 
         String imageString = readFileToBase64("test-jpg.jpg");
-        updatedUser.setImage(imageString);
+        UserUpdateDto updatedUser = new UserUpdateDto(user.getDisplayName(), imageString);
+
 
         HttpEntity<UserUpdateDto> requestEntity = new HttpEntity<>(updatedUser);
         ResponseEntity<UserDto> response = putUser(user.getId(), requestEntity, UserDto.class);
 
         putUser(user.getId(), requestEntity, UserDto.class);
 
-        String storedImageName = response.getBody().getImage();
+        String storedImageName = response.getBody().image();
         String profilePicturePath = appConfiguration.getFullProfileImagesPath() + "/" + storedImageName;
         File storedImage = new File(profilePicturePath);
         assertThat(storedImage.exists()).isFalse();
@@ -606,15 +609,10 @@ class UserControllerTest extends AbstractTest {
     private String readFileToBase64(String fileName) throws IOException {
         ClassPathResource imageResource = new ClassPathResource(fileName);
         byte[] imageArr = FileUtils.readFileToByteArray(imageResource.getFile());
-        String imageString = Base64.getEncoder().encodeToString(imageArr);
-        return imageString;
+        return Base64.getEncoder().encodeToString(imageArr);
     }
 
-    private UserUpdateDto createValidUserUpdateDto() {
-        UserUpdateDto updatedUser = new UserUpdateDto();
-        updatedUser.setDisplayName("test-display");
-        return updatedUser;
-    }
+
     public <T> ResponseEntity<T> getUsers(ParameterizedTypeReference<T> responseType) {
         return testRestTemplate.exchange(API_1_0_USERS, HttpMethod.GET, null, responseType);
     }

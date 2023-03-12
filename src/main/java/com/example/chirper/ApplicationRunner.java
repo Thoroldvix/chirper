@@ -1,11 +1,9 @@
 package com.example.chirper;
 
-import com.example.chirper.dto.PostDto;
-import com.example.chirper.persistence.entity.Post;
+import com.example.chirper.maper.PostMapper;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.service.UserService;
 import org.apache.tika.Tika;
-import org.modelmapper.ModelMapper;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -35,12 +33,7 @@ public class ApplicationRunner {
                 .forEach(userService::save);
     }
 
-    @Bean
-    public ModelMapper modelMapper() {
-        ModelMapper modelMapper = new ModelMapper();
-        modelMapper.typeMap(Post.class, PostDto.class).addMapping(Post::toMillis, PostDto::setTimestamp);
-        return modelMapper;
-    }
+
 
     @Bean
     public Tika tika() {

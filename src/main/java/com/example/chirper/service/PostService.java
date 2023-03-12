@@ -2,10 +2,10 @@ package com.example.chirper.service;
 
 import com.example.chirper.dto.PostDto;
 import com.example.chirper.dto.UserDto;
+import com.example.chirper.maper.PostMapper;
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
-import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -22,16 +22,17 @@ public class PostService {
 
     private final UserRepository userRepository;
 
-    private final ModelMapper modelMapper;
+    private final PostMapper postMapper;
 
     private final UserService userService;
 
     @Autowired
-    public PostService(PostRepository postRepository, UserRepository userRepository, ModelMapper modelMapper, UserService userService) {
+    public PostService(PostRepository postRepository, UserRepository userRepository, PostMapper postMapper, UserService userService) {
         this.postRepository = postRepository;
 
         this.userRepository = userRepository;
-        this.modelMapper = modelMapper;
+        this.postMapper = postMapper;
+
         this.userService = userService;
     }
 
@@ -42,25 +43,28 @@ public class PostService {
         Post savedPost = postRepository.save(post);
 
 
-        return modelMapper.map(savedPost, PostDto.class);
+        return postMapper.toPostDto(post);
     }
 
     public Page<PostDto> getAllPosts(Pageable pageable) {
-        return postRepository.findAll(pageable).map(this::toPostDto);
+        return postRepository.findAll(pageable).map(postMapper::toPostDto);
     }
 
     public Page<PostDto> getPostsOfUser(String username, Pageable pageable) {
         UserDto user = userService.getByUsername(username);
 
-        return postRepository.findAllByUserId(user.getId(), pageable)
-                .map(this::toPostDto);
+
+        return postRepository.findAllByUserId(user.id(), pageable)
+                .map(postMapper::toPostDto);
     }
 
     public Page<PostDto> getOldPosts(Long id, Pageable pageable) {
-        return postRepository.findByIdLessThan(id, pageable).map(this::toPostDto);
+        return postRepository.findByIdLessThan(id, pageable).map(postMapper::toPostDto);
     }
 
-    private PostDto toPostDto(Post post) {
-        return modelMapper.map(post, PostDto.class);
+
+    public Page<PostDto> getOldPostsOfUser(String username, Long id, Pageable pageable) {
+        UserDto user = userService.getByUsername(username);
+        return postRepository.findByIdLessThanAndUserId(id, user.id(), pageable).map(postMapper::toPostDto);
     }
 }
