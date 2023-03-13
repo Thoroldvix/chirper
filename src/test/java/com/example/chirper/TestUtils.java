@@ -1,22 +1,22 @@
 package com.example.chirper;
 
 import com.example.chirper.persistence.entity.Post;
-import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.Role;
+import com.example.chirper.persistence.entity.UserEntity;
 import lombok.experimental.UtilityClass;
 
 
 @UtilityClass
 public class TestUtils {
    public static UserEntity createValidUser() {
-        UserEntity userEntity = new UserEntity();
+       return UserEntity.builder()
+                .username("test-user")
+                .displayName("test-display")
+                .password("P4ssword")
+                .image("profile-image.png")
+                .role(Role.USER)
+                .build();
 
-        userEntity.setUsername("test-user");
-        userEntity.setDisplayName("test-display");
-        userEntity.setPassword("P4ssword");
-        userEntity.setImage("profile-image.png");
-        userEntity.setRole(Role.USER);
-        return userEntity;
     }
     public static UserEntity createValidUser(String username) {
         UserEntity userEntity = createValidUser();
@@ -25,9 +25,9 @@ public class TestUtils {
         return userEntity;
     }
     public static Post createValidPost() {
-        Post post = new Post();
-        post.setContent("test content for the test post");
-        return post;
+       return Post.builder()
+                .content("test content for the test post")
+                .build();
     }
 
 }

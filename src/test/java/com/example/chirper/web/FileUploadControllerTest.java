@@ -1,15 +1,12 @@
 package com.example.chirper.web;
 
-import com.example.chirper.TestUtils;
 import com.example.chirper.config.AppConfiguration;
-import com.example.chirper.dto.FileAttachment;
-import com.example.chirper.persistence.entity.UserEntity;
+import com.example.chirper.persistence.entity.FileAttachment;
+import com.example.chirper.persistence.entity.repository.FileAttachmentRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
 import org.apache.commons.io.FileUtils;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,10 +40,10 @@ public class FileUploadControllerTest {
     @Autowired
     private AppConfiguration appConfiguration;
 
-    @BeforeEach
-    public void init() throws IOException {
+    @Autowired
+    private FileAttachmentRepository fileAttachmentRepository;
 
-    }
+
 
     @Test
     public void uploadFile_withImageFromAuthorizedUser_receiveOk() {
@@ -68,7 +65,7 @@ public class FileUploadControllerTest {
         authenticate("user1");
 
         ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
-        assertThat(response.getBody().date()).isNotNull();
+        assertThat(response.getBody().getDate()).isNotNull();
     }
     @Test
     public void uploadFile_withImageFromAuthorizedUser_receiveFileAttachmentWithDate() {
@@ -76,8 +73,8 @@ public class FileUploadControllerTest {
         authenticate("user1");
 
         ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
-        assertThat(response.getBody().name()).isNotNull();
-        assertThat(response.getBody().name()).isNotEqualTo("profile.png");
+        assertThat(response.getBody().getName()).isNotNull();
+        assertThat(response.getBody().getName()).isNotEqualTo("profile.png");
     }
     @Test
     public void uploadFile_withImageFromAuthorizedUser_imageSavedToFolder() {
@@ -85,9 +82,28 @@ public class FileUploadControllerTest {
         authenticate("user1");
 
         ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
-        String imagePath = appConfiguration.getFullAttachmentsPath() + "/" + response.getBody().name();
+        String imagePath = appConfiguration.getFullAttachmentsPath() + "/" + response.getBody().getName();
         File storedImage = new File(imagePath);
         assertThat(storedImage.exists()).isTrue();
+    }
+    @Test
+    public void uploadFile_withImageFromAuthorizedUser_fileAttachmentSavedToDatabase() {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        uploadFile(getRequestEntity(), FileAttachment.class);
+
+        assertThat(fileAttachmentRepository.count()).isEqualTo(1);
+    }
+    @Test
+    public void uploadFile_withImageFromAuthorizedUser_fileAttachmentStoredWithFileType() {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        uploadFile(getRequestEntity(), FileAttachment.class);
+
+        FileAttachment storedFile = fileAttachmentRepository.findAll().get(0);
+        assertThat(storedFile.getFileType()).isEqualTo("image/png");
     }
 
     private <T> ResponseEntity<T> uploadFile(HttpEntity<?> requestEntity, Class<T> responseType) {
@@ -109,6 +125,7 @@ public class FileUploadControllerTest {
     @AfterEach
     public void cleanup() throws IOException {
         userRepository.deleteAll();
+        fileAttachmentRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
         FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
     }

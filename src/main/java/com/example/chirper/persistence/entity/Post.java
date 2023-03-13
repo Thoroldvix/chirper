@@ -4,13 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.*;
-import org.hibernate.Hibernate;
 
 import java.time.LocalDateTime;
-import java.util.Objects;
 
 @Getter
 @Setter
+@Builder
 @ToString
 @AllArgsConstructor
 @NoArgsConstructor
@@ -31,17 +30,7 @@ public class Post {
 
     private LocalDateTime createdAt;
 
+    @OneToOne(mappedBy = "post")
+    private FileAttachment attachment;
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        Post post = (Post) o;
-        return getId() != null && Objects.equals(getId(), post.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getClass().hashCode();
-    }
 }

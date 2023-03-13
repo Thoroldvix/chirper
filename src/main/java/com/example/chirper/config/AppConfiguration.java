@@ -10,13 +10,13 @@ import java.nio.file.Path;
 @Configuration
 @ConfigurationProperties(prefix = "chirper")
 public class AppConfiguration {
-   private String uploadPath;
+    private String uploadPath;
 
-   private String profileImagesFolder = "profile";
+    private String profileImagesFolder = "profile";
 
     private String attachmentsFolder = "attachments";
 
-    public  String getFullProfileImagesPath() {
+    public String getFullProfileImagesPath() {
         return Path.of(this.uploadPath, profileImagesFolder).toString();
     }
 

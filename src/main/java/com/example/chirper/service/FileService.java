@@ -1,15 +1,19 @@
 package com.example.chirper.service;
 
 import com.example.chirper.config.AppConfiguration;
+import com.example.chirper.persistence.entity.FileAttachment;
+import com.example.chirper.persistence.entity.repository.FileAttachmentRepository;
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.LocalDateTime;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -20,14 +24,17 @@ public class FileService {
 
     private final Tika tika;
 
+    private final FileAttachmentRepository fileAttachmentRepository;
+
     @Autowired
-    public FileService(AppConfiguration appConfiguration, Tika tika) {
+    public FileService(AppConfiguration appConfiguration, Tika tika, FileAttachmentRepository fileAttachmentRepository) {
         this.appConfiguration = appConfiguration;
         this.tika = tika;
+        this.fileAttachmentRepository = fileAttachmentRepository;
     }
 
     public String saveProfileImage(String base64Image) throws IOException {
-        String imageName = generateRandomImageName();
+        String imageName = generateRandomFileName();
 
         byte[] decodedBytes = Base64.getDecoder().decode(base64Image);
 
@@ -37,7 +44,33 @@ public class FileService {
         return imageName;
     }
 
-    private String generateRandomImageName() {
+    public void deleteProfileImage(String image) {
+        try {
+            Files.deleteIfExists(Path.of(appConfiguration.getFullProfileImagesPath(), image));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
+    public FileAttachment saveAttachment(MultipartFile file) {
+        String randomName = generateRandomFileName();
+        File target = new File(appConfiguration.getFullAttachmentsPath() + "/" + randomName);
+        FileAttachment fileAttachment = FileAttachment.builder()
+                .date(LocalDateTime.now())
+                .name(randomName)
+                .build();
+        try {
+            byte[] fileAsBytes = file.getBytes();
+            FileUtils.writeByteArrayToFile(target, fileAsBytes);
+            fileAttachment.setFileType(detectType(fileAsBytes));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return fileAttachmentRepository.save(fileAttachment);
+    }
+
+    private String generateRandomFileName() {
         return UUID.randomUUID().toString().replaceAll("-", "");
     }
 
@@ -45,12 +78,4 @@ public class FileService {
         return tika.detect(fileArr);
     }
 
-
-    public void deleteProfileImage(String image) {
-        try {
-            Files.deleteIfExists(Path.of(appConfiguration.getFullProfileImagesPath(), image));
-        } catch (IOException e) {
-          e.printStackTrace();
-        }
-    }
 }

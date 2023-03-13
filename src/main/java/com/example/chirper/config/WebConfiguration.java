@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 @Configuration
 public class WebConfiguration implements WebMvcConfigurer {
 
-
     private final AppConfiguration appConfiguration;
 
     @Autowired
@@ -44,11 +43,10 @@ public class WebConfiguration implements WebMvcConfigurer {
         return new Tika();
     }
 
-    private boolean createNonExistingFolder(String path) {
+    private void createNonExistingFolder(String path) {
         File folder = new File(path);
         if ((folder.exists() && folder.isDirectory())) {
-            return false;
+            folder.mkdir();
         }
-        return folder.mkdir();
     }
 }

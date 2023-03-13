@@ -3,8 +3,8 @@ package com.example.chirper.service;
 import com.example.chirper.dto.UserDto;
 import com.example.chirper.dto.UserUpdateDto;
 import com.example.chirper.maper.UserMapper;
-import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.Role;
+import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.security.UserPrincipal;
 import lombok.SneakyThrows;
@@ -53,11 +53,10 @@ public class UserService {
 
 
     public UserEntity getByUsername(String username) {
-       return  userRepository.findByUsername(username)
+        return userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User with username " + username + " not found"));
 
     }
-
 
 
     @Transactional

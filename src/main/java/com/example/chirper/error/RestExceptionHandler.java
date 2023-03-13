@@ -32,12 +32,12 @@ public class RestExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(apiError);
     }
+
     @ExceptionHandler(UsernameNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ResponseEntity<?> handleNotFoundException(UsernameNotFoundException ex, HttpServletRequest request) {
         return new ResponseEntity<>(new ApiError(HttpStatus.NOT_FOUND.value(), ex.getMessage(), request.getServletPath()), HttpStatus.NOT_FOUND);
     }
-
 
 
 }
