@@ -2,11 +2,13 @@ package com.example.chirper.web;
 
 import com.example.chirper.TestUtils;
 import com.example.chirper.config.AppConfiguration;
+import com.example.chirper.dto.FileAttachment;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
 import org.apache.commons.io.FileUtils;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,9 +45,7 @@ public class FileUploadControllerTest {
 
     @BeforeEach
     public void init() throws IOException {
-        userRepository.deleteAll();
-        testRestTemplate.getRestTemplate().getInterceptors().clear();
-        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
+
     }
 
     @Test
@@ -61,6 +61,33 @@ public class FileUploadControllerTest {
 
         ResponseEntity<Object> response = uploadFile(getRequestEntity(), Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+    @Test
+    public void uploadFile_withImageFromAuthorizedUser_receiveFileAttachmentWithRandomName() {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
+        assertThat(response.getBody().date()).isNotNull();
+    }
+    @Test
+    public void uploadFile_withImageFromAuthorizedUser_receiveFileAttachmentWithDate() {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
+        assertThat(response.getBody().name()).isNotNull();
+        assertThat(response.getBody().name()).isNotEqualTo("profile.png");
+    }
+    @Test
+    public void uploadFile_withImageFromAuthorizedUser_imageSavedToFolder() {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        ResponseEntity<FileAttachment> response = uploadFile(getRequestEntity(), FileAttachment.class);
+        String imagePath = appConfiguration.getFullAttachmentsPath() + "/" + response.getBody().name();
+        File storedImage = new File(imagePath);
+        assertThat(storedImage.exists()).isTrue();
     }
 
     private <T> ResponseEntity<T> uploadFile(HttpEntity<?> requestEntity, Class<T> responseType) {
@@ -78,6 +105,12 @@ public class FileUploadControllerTest {
 
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
         return requestEntity;
+    }
+    @AfterEach
+    public void cleanup() throws IOException {
+        userRepository.deleteAll();
+        testRestTemplate.getRestTemplate().getInterceptors().clear();
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
     }
 
 

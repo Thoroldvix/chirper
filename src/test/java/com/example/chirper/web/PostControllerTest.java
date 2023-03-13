@@ -10,6 +10,7 @@ import com.example.chirper.persistence.entity.repository.PostRepository;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.PostService;
 import com.example.chirper.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +53,7 @@ public class PostControllerTest {
     @Autowired
     private PostService postService;
 
-    @BeforeEach
+    @AfterEach
     public void cleanup() {
         postRepository.deleteAll();
         userRepository.deleteAll();

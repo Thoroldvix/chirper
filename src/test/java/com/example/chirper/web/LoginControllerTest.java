@@ -4,6 +4,7 @@ import com.example.chirper.error.ApiError;
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,7 +37,7 @@ class LoginControllerTest {
     @Autowired
     private UserService userService;
 
-    @BeforeEach
+    @AfterEach
     void cleanup() {
         userRepository.deleteAll();
         testRestTemplate.getRestTemplate().getInterceptors().clear();
