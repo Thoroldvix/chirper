@@ -2,6 +2,7 @@ package com.example.chirper.web;
 
 import com.example.chirper.TestPage;
 import com.example.chirper.config.AppConfiguration;
+import com.example.chirper.dto.GenericResponse;
 import com.example.chirper.dto.PostDto;
 import com.example.chirper.error.ApiError;
 import com.example.chirper.persistence.entity.FileAttachment;
@@ -14,7 +15,7 @@ import com.example.chirper.service.FileService;
 import com.example.chirper.service.PostService;
 import com.example.chirper.service.UserService;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,6 +32,7 @@ import org.springframework.test.context.ActiveProfiles;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -61,7 +63,7 @@ public class PostControllerTest {
     @Autowired
     private FileService fileService;
 
-    @AfterEach
+    @BeforeEach
     public void cleanup() {
         fileAttachmentRepository.deleteAll();
         postRepository.deleteAll();
@@ -487,6 +489,7 @@ public class PostControllerTest {
         });
         assertThat(response.getBody().get("count")).isEqualTo(1);
     }
+
     @Test
     public void postPost_whenPostHasFileAttachmentAndUserIsAuthorized_fileAttachmentPostRelationIsUpdatedInDatabase() throws IOException {
         userService.save(createValidUser("user1"));
@@ -504,6 +507,7 @@ public class PostControllerTest {
         assertThat(inDB.getPost().getId()).isEqualTo(response.getBody().id());
 
     }
+
     @Test
     public void postPost_whenPostHasFileAttachmentAndUserIsAuthorized_fileAttachmentRelationIsUpdatedInDatabase() throws IOException {
         userService.save(createValidUser("user1"));
@@ -521,6 +525,7 @@ public class PostControllerTest {
         assertThat(inDB.getAttachment().getId()).isEqualTo(savedFile.getId());
 
     }
+
     @Test
     public void postPost_whenPostHasFileAttachmentAndUserIsAuthorized_receivePostDtoWithAttachment() throws IOException {
         userService.save(createValidUser("user1"));
@@ -539,11 +544,69 @@ public class PostControllerTest {
 
     }
 
-    private static MockMultipartFile createFile() throws IOException {
+    @Test
+    public void deletePost_whenUserIsUnauthorized_receiveUnauthorized() {
+        ResponseEntity<Object> response = deletePost(555L, Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    }
+
+    @Test
+    public void deletePost_whenUserIsAuthorized_receiveOk() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+        PostDto post = postService.save(createValidPost(), user.getId());
+
+
+        ResponseEntity<Object> response = deletePost(post.id(), Object.class);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+    }
+
+    @Test
+    public void deletePost_whenUserIsAuthorized_receiveGenericResponse() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        PostDto post = postService.save(createValidPost(), user.getId());
+
+
+        ResponseEntity<GenericResponse> response = deletePost(post.id(), GenericResponse.class);
+        assertThat(response.getBody().message()).isNotNull();
+    }
+
+    @Test
+    public void deletePost_whenUserIsAuthorized_postRemovedFromDatabase() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        PostDto post = postService.save(createValidPost(), user.getId());
+
+
+        deletePost(post.id(), Object.class);
+        Optional<Post> inDB = postRepository.findById(post.id());
+
+        assertThat(inDB.isPresent()).isFalse();
+    }
+    @Test
+    public void deletePost_whenPostIsOwnedByAnotherUser_receiveForbidden() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+        UserEntity postOwner = userService.save(createValidUser("post-owner"));
+        PostDto post = postService.save(createValidPost(), postOwner.getId());
+
+
+        ResponseEntity<Object> response = deletePost(post.id(), Object.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
+
+    private MockMultipartFile createFile() throws IOException {
         ClassPathResource imageResource = new ClassPathResource("profile.png");
         byte[] fileAsBytes = FileUtils.readFileToByteArray(imageResource.getFile());
         MockMultipartFile file = new MockMultipartFile("profile.png", fileAsBytes);
         return file;
+    }
+
+    private <T> ResponseEntity<T> deletePost(Long postId, Class<T> response) {
+        return testRestTemplate.exchange(API_1_0_POSTS + "/" + postId, HttpMethod.DELETE, null, response);
     }
 
     private <T> ResponseEntity<T> getNewPostsOfUser(Long postId, String username, ParameterizedTypeReference<T> responseType) {

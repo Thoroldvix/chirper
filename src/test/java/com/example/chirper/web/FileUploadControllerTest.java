@@ -6,7 +6,7 @@ import com.example.chirper.persistence.entity.repository.FileAttachmentRepositor
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -122,7 +122,7 @@ public class FileUploadControllerTest {
         HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
         return requestEntity;
     }
-    @AfterEach
+    @BeforeEach
     public void cleanup() throws IOException {
         userRepository.deleteAll();
         fileAttachmentRepository.deleteAll();

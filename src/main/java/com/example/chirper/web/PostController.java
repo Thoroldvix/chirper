@@ -1,5 +1,6 @@
 package com.example.chirper.web;
 
+import com.example.chirper.dto.GenericResponse;
 import com.example.chirper.dto.PostDto;
 import com.example.chirper.persistence.entity.Post;
 import com.example.chirper.security.UserPrincipal;
@@ -54,6 +55,11 @@ public class PostController {
                 ResponseEntity.ok(postService.getOldPosts(id, username, pageable))
                 : ResponseEntity.ok(postService.getNewPosts(id, username, pageable));
 
+    }
+    @DeleteMapping("/posts/{id:\\d+}")
+    public GenericResponse deletePost(@PathVariable Long id, @AuthenticationPrincipal UserPrincipal loggedInUser) {
+        postService.deletePost(id);
+        return new GenericResponse("Post deleted");
     }
 
 }

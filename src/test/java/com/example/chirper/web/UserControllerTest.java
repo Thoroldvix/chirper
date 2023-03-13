@@ -11,7 +11,7 @@ import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.UserRepository;
 import com.example.chirper.service.UserService;
 import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -53,7 +53,7 @@ class UserControllerTest {
     public AppConfiguration appConfiguration;
 
 
-    @AfterEach
+    @BeforeEach
     public  void cleanUp() throws IOException {
         userRepository.deleteAll();
         FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));

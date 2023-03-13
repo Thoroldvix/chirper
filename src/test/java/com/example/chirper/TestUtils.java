@@ -8,8 +8,8 @@ import lombok.experimental.UtilityClass;
 
 @UtilityClass
 public class TestUtils {
-   public static UserEntity createValidUser() {
-       return UserEntity.builder()
+    public static UserEntity createValidUser() {
+        return UserEntity.builder()
                 .username("test-user")
                 .displayName("test-display")
                 .password("P4ssword")
@@ -18,14 +18,16 @@ public class TestUtils {
                 .build();
 
     }
+
     public static UserEntity createValidUser(String username) {
         UserEntity userEntity = createValidUser();
         userEntity.setUsername(username);
 
         return userEntity;
     }
+
     public static Post createValidPost() {
-       return Post.builder()
+        return Post.builder()
                 .content("test content for the test post")
                 .build();
     }
