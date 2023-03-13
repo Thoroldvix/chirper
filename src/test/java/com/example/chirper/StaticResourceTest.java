@@ -1,14 +1,19 @@
 package com.example.chirper;
 
+import com.example.chirper.config.AppConfiguration;
 import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Path;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -17,9 +22,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 
 @AutoConfigureMockMvc
-public class StaticResourceTest extends AbstractTest {
-
-
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@ActiveProfiles("test")
+public class StaticResourceTest  {
+    @Autowired
+    public AppConfiguration appConfiguration;
+    @AfterEach
+    public  void cleanup() throws IOException {
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullProfileImagesPath()));
+        FileUtils.cleanDirectory(new File(appConfiguration.getFullAttachmentsPath()));
+    }
     @Autowired
     private MockMvc mockMvc;
     @Test
