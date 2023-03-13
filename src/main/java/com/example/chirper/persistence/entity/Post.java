@@ -30,7 +30,7 @@ public class Post {
 
     private LocalDateTime createdAt;
 
-    @OneToOne(mappedBy = "post")
+    @OneToOne(mappedBy = "post", orphanRemoval = true)
     private FileAttachment attachment;
 
 }

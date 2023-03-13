@@ -27,6 +27,8 @@ public class PostService {
 
     private final UserRepository userRepository;
 
+    private final FileService fileService;
+
     private final PostMapper postMapper;
 
     private final UserService userService;
@@ -34,12 +36,13 @@ public class PostService {
     private final FileAttachmentRepository fileAttachmentRepository;
 
     @Autowired
-    public PostService(PostRepository postRepository, UserRepository userRepository, PostMapper postMapper,
+    public PostService(PostRepository postRepository, UserRepository userRepository, FileService fileService, PostMapper postMapper,
                        UserService userService,
                        FileAttachmentRepository fileAttachmentRepository) {
         this.postRepository = postRepository;
 
         this.userRepository = userRepository;
+        this.fileService = fileService;
         this.postMapper = postMapper;
 
         this.userService = userService;
@@ -107,6 +110,11 @@ public class PostService {
 
     @Transactional
     public void deletePost(Long id) {
+        postRepository.findById(id).ifPresent(post -> {
+            if (post.getAttachment() != null) {
+                fileService.deleteAttachment(post.getAttachment().getName());
+            }
+        });
         postRepository.deleteById(id);
     }
 

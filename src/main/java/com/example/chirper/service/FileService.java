@@ -87,13 +87,13 @@ public class FileService {
         LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         fileAttachmentRepository.findByDateBeforeAndPostIsNull(oneHourAgo)
                 .forEach(attachment -> {
-                    deleteAttachmentImage(attachment.getName());
+                    deleteAttachment(attachment.getName());
                     fileAttachmentRepository.deleteById(attachment.getId());
                 });
     }
 
 
-    private void deleteAttachmentImage(String image) {
+    public void deleteAttachment(String image) {
         try {
             Files.deleteIfExists(Path.of(appConfiguration.getFullAttachmentsPath(), image));
         } catch (IOException e) {

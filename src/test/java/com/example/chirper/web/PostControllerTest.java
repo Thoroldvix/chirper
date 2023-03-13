@@ -29,6 +29,7 @@ import org.springframework.http.client.support.BasicAuthenticationInterceptor;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -608,6 +609,51 @@ public class PostControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+    @Test
+    public void deletePost_whenPostHasAttachment_AttachmentRemovedFromDatabase() throws IOException {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        MockMultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Post post = createValidPost();
+        post.setAttachment(savedFile);
+        ResponseEntity<PostDto> response = postPost(post, PostDto.class);
+
+        Long postId = response.getBody().id();
+
+        deletePost(postId, Object.class);
+
+        Optional<FileAttachment> optionalAttachment = fileAttachmentRepository.findById(savedFile.getId());
+
+
+        assertThat(optionalAttachment.isPresent()).isFalse();
+
+    }
+    @Test
+    public void deletePost_whenPostHasAttachment_AttachmentRemovedFromStorage() throws IOException {
+        userService.save(createValidUser("user1"));
+        authenticate("user1");
+
+        MockMultipartFile file = createFile();
+
+        FileAttachment savedFile = fileService.saveAttachment(file);
+
+        Post post = createValidPost();
+        post.setAttachment(savedFile);
+        ResponseEntity<PostDto> response = postPost(post, PostDto.class);
+
+        Long postId = response.getBody().id();
+
+        deletePost(postId, Object.class);
+        String attachmentFolderPath = appConfiguration.getFullAttachmentsPath() + "/" + savedFile.getName();
+        File storedAttachment = new File(attachmentFolderPath);
+        assertThat(storedAttachment.exists()).isFalse();
+
+    }
+
 
     private MockMultipartFile createFile() throws IOException {
         ClassPathResource imageResource = new ClassPathResource("profile.png");
