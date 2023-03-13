@@ -17,6 +17,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static com.example.chirper.persistence.entity.PostSpecifications.*;
+
 @Service
 @Transactional(readOnly = true)
 public class PostService {
@@ -96,15 +98,5 @@ public class PostService {
     }
 
 
-    private Specification<Post> isSameUser(UserEntity user) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.equal(root.get("user"), user);
-    }
 
-    private Specification<Post> idLessThan(Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.lessThan(root.get("id"), id);
-    }
-
-    private Specification<Post> idGreaterThan(Long id) {
-        return (root, query, criteriaBuilder) -> criteriaBuilder.greaterThan(root.get("id"), id);
-    }
 }
