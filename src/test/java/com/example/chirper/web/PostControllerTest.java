@@ -1,4 +1,4 @@
-package com.example.chirper.controller;
+package com.example.chirper.web;
 
 import com.example.chirper.TestPage;
 import com.example.chirper.TestUtils;
@@ -27,7 +27,9 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import static com.example.chirper.controller.UserControllerTest.API_1_0_USERS;
+import static com.example.chirper.TestUtils.createValidPost;
+import static com.example.chirper.TestUtils.createValidUser;
+import static com.example.chirper.web.UserControllerTest.API_1_0_USERS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -59,10 +61,10 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_receiveOk() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
@@ -71,7 +73,7 @@ public class PostControllerTest {
     public void postPost_whenPostIsValidAndUserIsUnauthorized_receiveUnauthorized() {
 
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         ResponseEntity<Object> response = postPost(post, Object.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     }
@@ -80,27 +82,27 @@ public class PostControllerTest {
     public void postPost_whenPostIsValidAndUserIsUnauthorized_receiveApiError() {
 
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         ResponseEntity<ApiError> response = postPost(post, ApiError.class);
         assertThat(response.getBody().getStatus()).isEqualTo(HttpStatus.UNAUTHORIZED.value());
     }
 
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_PostSavedToDatabase() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         postPost(post, Object.class);
         assertThat(postRepository.count()).isEqualTo(1);
     }
 
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_PostSavedToDatabaseWithTimestamp() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         postPost(post, Object.class);
 
         Post inDB = postRepository.findAll().get(0);
@@ -109,7 +111,7 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostContentIsNullAndUserIsAuthorized_receiveBadRequest() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
         Post post = new Post();
@@ -119,7 +121,7 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostContentLessThan10CharsAndUserIsAuthorized_receiveBadRequest() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
         Post post = new Post();
@@ -130,7 +132,7 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostContentIs5000CharsAndUserIsAuthorized_receiveOk() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
         Post post = new Post();
@@ -142,7 +144,7 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostContentMoreThan5000CharsAndUserIsAuthorized_receiveBadRequest() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
         Post post = new Post();
@@ -154,7 +156,7 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostContentIsNullAndUserIsAuthorized_receiveApiErrorWithValidationErrors() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
         Post post = new Post();
@@ -165,9 +167,9 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_postSavedWithAuthenticatedUserInfo() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         postPost(post, Object.class);
 
         Post inDB = postRepository.findAll().get(0);
@@ -177,10 +179,10 @@ public class PostControllerTest {
 
     @Test
     public void postPost_whenPostIsValidAndUserIsAuthorized_postCanBeAccessedFromUserEntity() {
-        userService.save(TestUtils.createValidUser("user1"));
+        userService.save(createValidUser("user1"));
         authenticate("user1");
 
-        Post post = TestUtils.createValidPost();
+        Post post = createValidPost();
         postPost(post, Object.class);
 
         UserEntity inDBUser = userRepository.findByUsername("user1").orElse(null);
@@ -204,10 +206,10 @@ public class PostControllerTest {
 
     @Test
     public void getPosts_whenThereArePosts_receivePageWithItems() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
         ResponseEntity<TestPage<Object>> response = getPosts(new ParameterizedTypeReference<TestPage<Object>>() {
         });
         assertThat(response.getBody().getTotalElements()).isEqualTo(3);
@@ -215,8 +217,8 @@ public class PostControllerTest {
 
     @Test
     public void getPosts_whenThereArePosts_receivePageWithPostDto() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<PostDto>> response = getPosts(new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -226,17 +228,17 @@ public class PostControllerTest {
 
     @Test
     public void postPosts_whenPostIsValidAndUserIsAuthorized_receivePostDto() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        UserEntity user = userService.save(createValidUser("user1"));
         authenticate(user.getUsername());
 
-        ResponseEntity<PostDto> response = postPost(TestUtils.createValidPost(), PostDto.class);
+        ResponseEntity<PostDto> response = postPost(createValidPost(), PostDto.class);
 
         assertThat(response.getBody().user().username()).isEqualTo(user.getUsername());
     }
 
     @Test
     public void getPostsOfUser_whenUserExists_receiveOk() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        UserEntity user = userService.save(createValidUser("user1"));
         ResponseEntity<Object> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<Object>() {
         });
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
@@ -258,8 +260,8 @@ public class PostControllerTest {
 
     @Test
     public void getPostsOfUser_whenUserExistsWithPosts_receivePageWithPostDto() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -269,10 +271,10 @@ public class PostControllerTest {
 
     @Test
     public void getPostsOfUser_whenUserExistsWithMultiplePosts_receivePageWithMatchingPostsCount() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(user.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -281,11 +283,11 @@ public class PostControllerTest {
 
     @Test
     public void getPostsOfUser_whenMultipleUserExistsWithMultiplePosts_receivePageWithMatchingPostsCount() {
-        UserEntity userWithThreePosts = userService.save(TestUtils.createValidUser("user1"));
-        IntStream.rangeClosed(1, 3).forEach(i -> postService.save(TestUtils.createValidPost(), userWithThreePosts.getId()));
+        UserEntity userWithThreePosts = userService.save(createValidUser("user1"));
+        IntStream.rangeClosed(1, 3).forEach(i -> postService.save(createValidPost(), userWithThreePosts.getId()));
 
-        UserEntity userWithFivePosts = userService.save(TestUtils.createValidUser("user2"));
-        IntStream.rangeClosed(1, 5).forEach(i -> postService.save(TestUtils.createValidPost(), userWithFivePosts.getId()));
+        UserEntity userWithFivePosts = userService.save(createValidUser("user2"));
+        IntStream.rangeClosed(1, 5).forEach(i -> postService.save(createValidPost(), userWithFivePosts.getId()));
 
 
         ResponseEntity<TestPage<PostDto>> response = getPostsOfUser(userWithFivePosts.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
@@ -302,12 +304,12 @@ public class PostControllerTest {
 
     @Test
     public void getOldPosts_whenThereArePosts_receivePageWithItemsProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<Object>> response = getOldPosts(fourth.id(), new ParameterizedTypeReference<TestPage<Object>>() {
         });
@@ -315,12 +317,12 @@ public class PostControllerTest {
     }
     @Test
     public void getOldPosts_whenThereArePosts_receivePageWithPostDtoBeforeProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<PostDto>> response = getOldPosts(fourth.id(), new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -328,19 +330,19 @@ public class PostControllerTest {
     }
     @Test
     public void getOldPostsOfUser_whenUserExistThereAreNoPosts_receiveOk() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        UserEntity user = userService.save(createValidUser("user1"));
 
         ResponseEntity<Object> response = getOldPostsOfUser(5L, user.getUsername(), new ParameterizedTypeReference<Object>(){});
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
     @Test
     public void getOldPostsOfUser_whenUserExistAndThereArePosts_receivePageWithItemsProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<TestPage<PostDto>> response = getOldPostsOfUser(fourth.id(), user.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -353,14 +355,14 @@ public class PostControllerTest {
     }
     @Test
     public void getOldPostsOfUser_whenUserExistAndThereAreNoPosts_receivePageWithZeroItemsBeforeProvidedId() {
-        UserEntity user1 = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
+        UserEntity user1 = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
+        PostDto fourth = postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
 
-        UserEntity user2 = userService.save(TestUtils.createValidUser("user2"));
+        UserEntity user2 = userService.save(createValidUser("user2"));
 
         ResponseEntity<TestPage<PostDto>> response = getOldPostsOfUser(fourth.id(), user2.getUsername(), new ParameterizedTypeReference<TestPage<PostDto>>() {
         });
@@ -368,12 +370,12 @@ public class PostControllerTest {
     }
     @Test
     public void getNewPosts_whenThereArePosts_receiveListOfItemsAfterProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<List<Object>> response = getNewPosts(fourth.id(), new ParameterizedTypeReference<List<Object>>() {
         });
@@ -381,12 +383,12 @@ public class PostControllerTest {
     }
     @Test
     public void getNewPosts_whenThereArePosts_receiveListOfPostDtoAfterProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<List<PostDto>> response = getNewPosts(fourth.id(), new ParameterizedTypeReference<List<PostDto>>() {
         });
@@ -394,19 +396,19 @@ public class PostControllerTest {
     }
     @Test
     public void getNewPostsOfUser_whenUserExistThereAreNoPosts_receiveOk() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
+        UserEntity user = userService.save(createValidUser("user1"));
 
         ResponseEntity<Object> response = getNewPostsOfUser(5L, user.getUsername(), new ParameterizedTypeReference<Object>(){});
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
     }
     @Test
     public void getNewPostsOfUser_whenUserExistAndThereArePosts_receiveListWithItemsAfterProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<List<PostDto>> response = getNewPostsOfUser(fourth.id(), user.getUsername(), new ParameterizedTypeReference<List<PostDto>>() {
         });
@@ -419,14 +421,14 @@ public class PostControllerTest {
     }
     @Test
     public void getNewPostsOfUser_whenUserExistAndThereAreNoPosts_receiveListWithZeroItemsAfterProvidedId() {
-        UserEntity user1 = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user1.getId());
-        postService.save(TestUtils.createValidPost(), user1.getId());
+        UserEntity user1 = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
+        PostDto fourth = postService.save(createValidPost(), user1.getId());
+        postService.save(createValidPost(), user1.getId());
 
-        UserEntity user2 = userService.save(TestUtils.createValidUser("user2"));
+        UserEntity user2 = userService.save(createValidUser("user2"));
 
         ResponseEntity<List<PostDto>> response = getNewPostsOfUser(fourth.id(), user2.getUsername(), new ParameterizedTypeReference<List<PostDto>>() {
         });
@@ -434,24 +436,24 @@ public class PostControllerTest {
     }
     @Test
     public void getNewPostCount_whenThereArePosts_receiveCountAfterProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<Map<String, Long>> response = getNewPostCount(fourth.id(), new ParameterizedTypeReference<Map<String, Long>>(){});
         assertThat(response.getBody().get("count")).isEqualTo(1);
     }
     @Test
     public void getNewPostCountOfUser_whenThereArePosts_receiveCountAfterProvidedId() {
-        UserEntity user = userService.save(TestUtils.createValidUser("user1"));
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
-        PostDto fourth = postService.save(TestUtils.createValidPost(), user.getId());
-        postService.save(TestUtils.createValidPost(), user.getId());
+        UserEntity user = userService.save(createValidUser("user1"));
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
+        PostDto fourth = postService.save(createValidPost(), user.getId());
+        postService.save(createValidPost(), user.getId());
 
         ResponseEntity<Map<String, Long>> response = getNewPostCountOfUser(fourth.id(), user.getUsername(), new ParameterizedTypeReference<Map<String, Long>>(){});
         assertThat(response.getBody().get("count")).isEqualTo(1);
@@ -497,7 +499,7 @@ public class PostControllerTest {
         return testRestTemplate.postForEntity(API_1_0_POSTS, post, responseType);
     }
 
-    public void authenticate(String username) {
+    private  void authenticate(String username) {
         testRestTemplate.getRestTemplate().getInterceptors().add(new BasicAuthenticationInterceptor(username, "P4ssword"));
     }
 

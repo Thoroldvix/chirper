@@ -1,4 +1,4 @@
-package com.example.chirper;
+package com.example.chirper.repository;
 
 import com.example.chirper.persistence.entity.UserEntity;
 import com.example.chirper.persistence.entity.repository.UserRepository;

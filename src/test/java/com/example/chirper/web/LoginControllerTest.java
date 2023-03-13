@@ -1,4 +1,4 @@
-package com.example.chirper.controller;
+package com.example.chirper.web;
 
 import com.example.chirper.error.ApiError;
 import com.example.chirper.persistence.entity.UserEntity;
