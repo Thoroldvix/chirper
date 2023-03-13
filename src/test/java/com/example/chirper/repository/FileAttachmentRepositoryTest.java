@@ -12,7 +12,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 
 import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +39,7 @@ class FileAttachmentRepositoryTest {
         testEntityManager.persist(getOneHourOldFileAttachment());
         testEntityManager.persist(getFileAttachmentWithin1Hour());
 
-        LocalDateTime oneHourAgo = LocalDateTime.now().minus(1, ChronoUnit.HOURS);
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
         List<FileAttachment> attachments = fileAttachmentRepository.findByDateBeforeAndPostIsNull(oneHourAgo);
         assertThat(attachments.size()).isEqualTo(1);
     }
@@ -48,12 +47,12 @@ class FileAttachmentRepositoryTest {
 
     private FileAttachment getOneHourOldFileAttachment() {
         FileAttachment fileAttachment = new FileAttachment();
-        fileAttachment.setDate(LocalDateTime.now().minus(1, ChronoUnit.HOURS));
+        fileAttachment.setDate(LocalDateTime.now().minusHours(1));
         return fileAttachment;
     }
     private FileAttachment getFileAttachmentWithin1Hour() {
         FileAttachment fileAttachment = new FileAttachment();
-        fileAttachment.setDate(LocalDateTime.now().minus(1, ChronoUnit.MINUTES));
+        fileAttachment.setDate(LocalDateTime.now().minusMinutes(1));
         return fileAttachment;
     }
     private FileAttachment getOldFileAttachmentWithPost(Post post) {

@@ -6,6 +6,8 @@ import com.example.chirper.persistence.entity.repository.FileAttachmentRepositor
 import org.apache.commons.io.FileUtils;
 import org.apache.tika.Tika;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,8 +20,10 @@ import java.util.Base64;
 import java.util.UUID;
 
 @Service
+@EnableScheduling
 public class FileService {
 
+    private final int SIXTY_MINUTES_IN_MILLIS = 1000 * 60 * 60;
     private final AppConfiguration appConfiguration;
 
     private final Tika tika;
@@ -78,4 +82,22 @@ public class FileService {
         return tika.detect(fileArr);
     }
 
+    @Scheduled(fixedRate = SIXTY_MINUTES_IN_MILLIS)
+    public void cleanupStorage() {
+        LocalDateTime oneHourAgo = LocalDateTime.now().minusHours(1);
+        fileAttachmentRepository.findByDateBeforeAndPostIsNull(oneHourAgo)
+                .forEach(attachment -> {
+                    deleteAttachmentImage(attachment.getName());
+                    fileAttachmentRepository.deleteById(attachment.getId());
+                });
+    }
+
+
+    private void deleteAttachmentImage(String image) {
+        try {
+            Files.deleteIfExists(Path.of(appConfiguration.getFullAttachmentsPath(), image));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 }
