@@ -38,6 +38,7 @@ public class SecurityConfiguration {
                     authorizeConfig.requestMatchers(HttpMethod.POST, "/api/1.0/login").authenticated();
                     authorizeConfig.requestMatchers(HttpMethod.PUT, "/api/1.0/users/{id:\\d+}").authenticated();
                     authorizeConfig.requestMatchers(HttpMethod.POST, "/api/1.0/posts/**").authenticated();
+                    authorizeConfig.requestMatchers(HttpMethod.DELETE, "/api/1.0/posts/{id:\\d+}").authenticated();
                     authorizeConfig.anyRequest().permitAll();
                 })
                 .httpBasic()

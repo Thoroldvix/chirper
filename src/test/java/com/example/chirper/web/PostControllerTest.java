@@ -597,6 +597,17 @@ public class PostControllerTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
     }
+    @Test
+    public void deletePost_whenPostNotExist_receiveForbidden() {
+        UserEntity user = userService.save(createValidUser("user1"));
+        authenticate(user.getUsername());
+
+
+
+        ResponseEntity<Object> response = deletePost(555L, Object.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    }
 
     private MockMultipartFile createFile() throws IOException {
         ClassPathResource imageResource = new ClassPathResource("profile.png");
